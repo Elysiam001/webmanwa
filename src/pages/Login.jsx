@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Chrome, Facebook, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Globe, Smartphone, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Login = () => {
@@ -67,10 +67,10 @@ const Login = () => {
 
         <div className="social-btns">
           <button className="social-btn glass">
-            <Chrome size={20} /> Google
+            <Globe size={20} /> Google
           </button>
           <button className="social-btn glass">
-            <Facebook size={20} /> Facebook
+            <Smartphone size={20} /> Facebook
           </button>
         </div>
 
