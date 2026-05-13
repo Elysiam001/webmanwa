@@ -40,10 +40,22 @@ const Navbar = () => {
             <Search size={20} />
           </button>
 
-          <Link to="/login" className="login-btn">
-            <User size={20} />
-            <span className="desktop-only">Đăng nhập</span>
-          </Link>
+          {user ? (
+            <div className="user-profile">
+              <div className="user-info desktop-only">
+                <span className="user-name">{user.username}</span>
+              </div>
+              <button onClick={logout} className="logout-btn">
+                <X size={18} />
+                <span className="desktop-only">Đăng xuất</span>
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="login-btn">
+              <User size={20} />
+              <span className="desktop-only">Đăng nhập</span>
+            </Link>
+          )}
 
           <button 
             className="menu-btn mobile-only"
@@ -181,6 +193,29 @@ const Navbar = () => {
           background: var(--primary-hover);
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        .user-profile {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+        .user-name {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+        .logout-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #ef4444;
+          background: rgba(239, 68, 68, 0.1);
+          padding: 0.5rem 1rem;
+          border-radius: var(--radius-full);
+          font-weight: 500;
+          transition: var(--transition);
+        }
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
         }
 
         .icon-btn, .menu-btn {
