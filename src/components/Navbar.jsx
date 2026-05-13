@@ -1,19 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, Menu, X, BookOpen, Compass, History, Bookmark } from 'lucide-react';
+import { 
+  Search, User, Menu, X, BookOpen, Compass, History, 
+  Bookmark, Settings, Power, Heart, Book, Layers, PlusCircle, CreditCard
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   return (
@@ -43,14 +60,78 @@ const Navbar = () => {
           </button>
 
           {user ? (
-            <div className="user-profile">
-              <div className="user-info desktop-only">
-                <span className="user-name">{user.username}</span>
+            <div className="user-section" ref={userMenuRef}>
+              <div 
+                className="avatar-wrapper"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                <img 
+                  src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`} 
+                  alt={user.username} 
+                  className="user-avatar"
+                />
+                <div className="notification-badge">208</div>
               </div>
-              <button onClick={logout} className="logout-btn">
-                <X size={18} />
-                <span className="desktop-only">Đăng xuất</span>
-              </button>
+
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="user-dropdown glass"
+                  >
+                    <div className="dropdown-header">
+                      <span className="username-display">{user.username}•</span>
+                    </div>
+                    
+                    <div className="dropdown-divider"></div>
+                    
+                    <div className="dropdown-items">
+                      <Link to="/profile" className="dropdown-item">
+                        <User size={18} /> Thông tin cá nhân
+                      </Link>
+                      <Link to="/settings" className="dropdown-item">
+                        <Settings size={18} /> Cài đặt
+                      </Link>
+                      <Link to="/stats" className="dropdown-item">
+                        <Layers size={18} /> Thế lực
+                      </Link>
+                      
+                      <button onClick={logout} className="dropdown-item logout">
+                        <Power size={18} /> Đăng xuất
+                      </button>
+
+                      <div className="dropdown-divider"></div>
+                      
+                      <Link to="/donate" className="dropdown-item donate">
+                        <CreditCard size={18} /> Donate
+                      </Link>
+
+                      <div className="dropdown-divider"></div>
+
+                      <Link to="/bookmarks" className="dropdown-item">
+                        <Bookmark size={18} /> Truyện đánh dấu
+                      </Link>
+                      <Link to="/history" className="dropdown-item">
+                        <History size={18} /> Truyện đã đọc
+                      </Link>
+                      <Link to="/following" className="dropdown-item">
+                        <Heart size={18} /> Truyện theo dõi
+                      </Link>
+                      <Link to="/my-manga" className="dropdown-item">
+                        <Book size={18} /> Truyện tôi thầu
+                      </Link>
+
+                      <div className="dropdown-divider"></div>
+
+                      <Link to="/create-manga" className="dropdown-item create-btn">
+                        <PlusCircle size={18} /> Đăng truyện
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <Link to="/login" className="login-btn">
@@ -90,9 +171,7 @@ const Navbar = () => {
           transition: var(--transition);
           display: flex;
           align-items: center;
-          border-top: none;
-          border-left: none;
-          border-right: none;
+          border-bottom: 1px solid var(--border);
         }
 
         .navbar.scrolled {
@@ -114,12 +193,9 @@ const Navbar = () => {
           gap: 0.75rem;
           font-size: 1.5rem;
           font-weight: 800;
-          letter-spacing: -0.5px;
         }
 
-        .logo-icon {
-          color: var(--primary);
-        }
+        .logo-icon { color: var(--primary); }
 
         .nav-links {
           display: flex;
@@ -132,20 +208,7 @@ const Navbar = () => {
           position: relative;
         }
 
-        .nav-link:hover, .nav-link.active {
-          color: var(--text-primary);
-        }
-
-        .nav-link.active::after {
-          content: '';
-          position: absolute;
-          bottom: -8px;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: var(--primary);
-          border-radius: var(--radius-full);
-        }
+        .nav-link.active { color: var(--text-primary); }
 
         .nav-actions {
           display: flex;
@@ -161,14 +224,11 @@ const Navbar = () => {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          width: 250px;
+          width: 200px;
           transition: var(--transition);
         }
 
-        .search-bar:focus-within {
-          border-color: var(--primary);
-          width: 300px;
-        }
+        .search-bar:focus-within { width: 250px; border-color: var(--primary); }
 
         .search-bar input {
           background: none;
@@ -176,7 +236,6 @@ const Navbar = () => {
           color: var(--text-primary);
           width: 100%;
           outline: none;
-          font-size: 0.9rem;
         }
 
         .login-btn {
@@ -188,41 +247,98 @@ const Navbar = () => {
           padding: 0.6rem 1.2rem;
           border-radius: var(--radius-full);
           font-weight: 600;
-          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
 
-        .login-btn:hover {
-          background: var(--primary-hover);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        /* User Section & Dropdown Styles */
+        .user-section {
+          position: relative;
         }
-        
-        .user-profile {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-        .user-name {
-          font-weight: 600;
-          color: var(--text-primary);
-        }
-        .logout-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: #ef4444;
-          background: rgba(239, 68, 68, 0.1);
-          padding: 0.5rem 1rem;
-          border-radius: var(--radius-full);
-          font-weight: 500;
+
+        .avatar-wrapper {
+          position: relative;
+          cursor: pointer;
           transition: var(--transition);
         }
-        .logout-btn:hover {
-          background: rgba(239, 68, 68, 0.2);
+
+        .avatar-wrapper:hover {
+          transform: scale(1.05);
         }
 
-        .icon-btn, .menu-btn {
+        .user-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          border: 2px solid var(--border);
+          object-fit: cover;
+        }
+
+        .notification-badge {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: #ef4444;
+          color: white;
+          font-size: 0.65rem;
+          padding: 2px 6px;
+          border-radius: 10px;
+          border: 2px solid var(--bg-body);
+        }
+
+        .user-dropdown {
+          position: absolute;
+          top: calc(100% + 15px);
+          right: 0;
+          width: 240px;
+          padding: 0.5rem;
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--border);
+          box-shadow: var(--shadow-xl);
+          background: rgba(15, 15, 18, 0.95);
+        }
+
+        .dropdown-header {
+          padding: 0.75rem 1rem;
+        }
+
+        .username-display {
+          font-weight: 700;
+          font-size: 1.1rem;
+          color: var(--text-primary);
+        }
+
+        .dropdown-divider {
+          height: 1px;
+          background: var(--border);
+          margin: 0.5rem 0;
+        }
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
           color: var(--text-secondary);
+          border-radius: var(--radius-md);
+          font-weight: 500;
+          transition: var(--transition);
+          width: 100%;
+          text-align: left;
+        }
+
+        .dropdown-item:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-primary);
+        }
+
+        .dropdown-item.logout { color: #ef4444; }
+        .dropdown-item.donate { color: #3b82f6; }
+        .dropdown-item.create-btn { 
+          color: #ef4444; 
+          font-weight: 600;
+        }
+
+        .dropdown-item.create-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
         }
 
         .mobile-menu {
@@ -234,7 +350,7 @@ const Navbar = () => {
           display: flex;
           flex-direction: column;
           gap: 1.25rem;
-          border-top: 1px solid var(--border);
+          background: var(--bg-body);
         }
 
         .mobile-only { display: none; }
@@ -242,9 +358,6 @@ const Navbar = () => {
         @media (max-width: 1024px) {
           .desktop-only { display: none; }
           .mobile-only { display: flex; }
-          
-          .navbar { height: 70px; }
-          .container { padding: 0 1.25rem; }
         }
       `}</style>
     </nav>
