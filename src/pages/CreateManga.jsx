@@ -1,110 +1,149 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Image, Type, AlignLeft, User, List, CheckCircle, ArrowLeft } from 'lucide-react';
+import { 
+  BookText, Image as ImageIcon, ArrowRight, ArrowLeft, 
+  CheckCircle, Plus, Info, Sparkles 
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const CreateManga = () => {
+  const [step, setStep] = useState(1); // 1: Chọn loại, 2: Nhập thông tin
+  const [storyType, setStoryType] = useState(null); // 'manga' hoặc 'novel'
   const [formData, setFormData] = useState({
     title: '',
-    otherTitle: '',
     description: '',
     author: '',
-    genre: '',
-    status: 'Đang tiến hành',
-    type: 'Manhwa',
+    genres: '',
     coverImage: ''
   });
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleTypeSelect = (type) => {
+    setStoryType(type);
+    setStep(2);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    // Logic gửi dữ liệu tới API sẽ thêm ở đây
-    setTimeout(() => {
-      setLoading(false);
-      alert('Tạo truyện thành công! (Dữ liệu mẫu)');
-      navigate('/dashboard');
-    }, 1500);
+    alert(`Đã tạo thành công ${storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}: ${formData.title}`);
+    navigate('/dashboard');
   };
 
   return (
-    <div className="create-page">
+    <div className="create-container">
       <div className="container">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="create-card glass-card-premium"
-        >
-          <div className="card-header-vibrant">
-            <button onClick={() => navigate(-1)} className="back-btn">
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="page-title-vibrant">Tạo bộ truyện mới</h1>
-          </div>
+        {step === 1 ? (
+          /* BƯỚC 1: CHỌN LOẠI TRUYỆN */
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="selection-hub"
+          >
+            <div className="hub-header">
+              <h1 className="hub-title">Bạn muốn đăng loại truyện gì?</h1>
+              <p className="hub-subtitle">Chọn định dạng phù hợp nhất với nội dung của bạn</p>
+            </div>
 
-          <form onSubmit={handleSubmit} className="create-form">
-            <div className="form-grid">
-              {/* Cột trái: Ảnh bìa */}
-              <div className="form-column image-upload-section">
-                <div className="image-preview-container">
-                  {formData.coverImage ? (
-                    <img src={formData.coverImage} alt="Cover Preview" className="preview-img" />
-                  ) : (
-                    <div className="no-image">
-                      <Image size={48} className="icon-muted" />
-                      <span>Chưa có ảnh bìa</span>
-                    </div>
-                  )}
+            <div className="hub-grid">
+              {/* Card Truyện Tranh */}
+              <motion.div 
+                whileHover={{ y: -10, scale: 1.02 }}
+                onClick={() => handleTypeSelect('manga')}
+                className="type-card manga-type"
+              >
+                <div className="type-icon-wrapper">
+                  <ImageIcon size={48} />
                 </div>
-                <div className="input-group">
-                  <label>Link ảnh bìa</label>
-                  <div className="input-wrapper">
-                    <Image size={20} className="input-icon" />
+                <div className="type-info">
+                  <h2>Truyện Tranh</h2>
+                  <p>Manhwa, Manga, Manhua... Cho phép tải lên hình ảnh từng trang truyện.</p>
+                </div>
+                <div className="type-footer">
+                  <span>Bắt đầu ngay</span>
+                  <ArrowRight size={20} />
+                </div>
+                <div className="type-badge">Phổ biến</div>
+              </motion.div>
+
+              {/* Card Truyện Chữ */}
+              <motion.div 
+                whileHover={{ y: -10, scale: 1.02 }}
+                onClick={() => handleTypeSelect('novel')}
+                className="type-card novel-type"
+              >
+                <div className="type-icon-wrapper">
+                  <BookText size={48} />
+                </div>
+                <div className="type-info">
+                  <h2>Truyện Chữ / Tiểu thuyết</h2>
+                  <p>Light Novel, Web Novel... Trình soạn thảo văn bản chuyên nghiệp.</p>
+                </div>
+                <div className="type-footer">
+                  <span>Bắt đầu ngay</span>
+                  <ArrowRight size={20} />
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        ) : (
+          /* BƯỚC 2: NHẬP THÔNG TIN CHI TIẾT */
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="form-container-premium glass-card"
+          >
+            <div className="form-header-vibrant">
+              <button onClick={() => setStep(1)} className="back-btn-hub">
+                <ArrowLeft size={20} />
+              </button>
+              <div className="header-text">
+                <h1>Thông tin {storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}</h1>
+                <p>Hãy điền đầy đủ các thông tin bên dưới</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="vibrant-form">
+              <div className="form-layout">
+                {/* Ảnh bìa */}
+                <div className="cover-upload-side">
+                  <div className="cover-preview-box">
+                    {formData.coverImage ? (
+                      <img src={formData.coverImage} alt="Preview" />
+                    ) : (
+                      <div className="empty-preview">
+                        <ImageIcon size={40} />
+                        <span>Chưa có ảnh bìa</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="input-group-hub">
+                    <label>Link ảnh bìa (URL)</label>
                     <input 
                       type="url" 
-                      placeholder="https://example.com/image.jpg"
+                      placeholder="https://..."
                       value={formData.coverImage}
                       onChange={(e) => setFormData({...formData, coverImage: e.target.value})}
+                      required
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Cột phải: Thông tin */}
-              <div className="form-column info-section">
-                <div className="input-group">
-                  <label>Tên truyện <span className="required">*</span></label>
-                  <div className="input-wrapper">
-                    <Type size={20} className="input-icon" />
+                {/* Thông tin chi tiết */}
+                <div className="info-side">
+                  <div className="input-group-hub">
+                    <label>Tên truyện</label>
                     <input 
                       type="text" 
-                      placeholder="Nhập tên bộ truyện..." 
-                      required
+                      placeholder="Nhập tên truyện..."
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      required
                     />
                   </div>
-                </div>
 
-                <div className="input-group">
-                  <label>Tên gọi khác</label>
-                  <div className="input-wrapper">
-                    <Type size={20} className="input-icon" />
-                    <input 
-                      type="text" 
-                      placeholder="Tên tiếng Anh, Hàn..."
-                      value={formData.otherTitle}
-                      onChange={(e) => setFormData({...formData, otherTitle: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="input-row">
-                  <div className="input-group">
-                    <label>Tác giả</label>
-                    <div className="input-wrapper">
-                      <User size={20} className="input-icon" />
+                  <div className="input-row-hub">
+                    <div className="input-group-hub">
+                      <label>Tác giả</label>
                       <input 
                         type="text" 
                         placeholder="Tên tác giả"
@@ -112,204 +151,213 @@ const CreateManga = () => {
                         onChange={(e) => setFormData({...formData, author: e.target.value})}
                       />
                     </div>
-                  </div>
-                  <div className="input-group">
-                    <label>Thể loại <span className="required">*</span></label>
-                    <div className="input-wrapper">
-                      <List size={20} className="input-icon" />
+                    <div className="input-group-hub">
+                      <label>Thể loại</label>
                       <input 
                         type="text" 
-                        placeholder="Hành động, Phiêu lưu..." 
+                        placeholder="Hành động, Tình cảm..."
+                        value={formData.genres}
+                        onChange={(e) => setFormData({...formData, genres: e.target.value})}
                         required
-                        value={formData.genre}
-                        onChange={(e) => setFormData({...formData, genre: e.target.value})}
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="input-row">
-                  <div className="input-group">
-                    <label>Trạng thái</label>
-                    <select 
-                      value={formData.status}
-                      onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      className="custom-select"
-                    >
-                      <option>Đang tiến hành</option>
-                      <option>Hoàn thành</option>
-                      <option>Tạm ngưng</option>
-                    </select>
-                  </div>
-                  <div className="input-group">
-                    <label>Loại truyện</label>
-                    <select 
-                      value={formData.type}
-                      onChange={(e) => setFormData({...formData, type: e.target.value})}
-                      className="custom-select"
-                    >
-                      <option>Manhwa</option>
-                      <option>Manga</option>
-                      <option>Manhua</option>
-                      <option>Comic</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="input-group">
-                  <label>Giới thiệu truyện</label>
-                  <div className="input-wrapper align-top">
-                    <AlignLeft size={20} className="input-icon mt-2" />
+                  <div className="input-group-hub">
+                    <label>Tóm tắt nội dung</label>
                     <textarea 
-                      placeholder="Nhập tóm tắt nội dung truyện..."
-                      rows="5"
+                      rows="6" 
+                      placeholder="Mô tả ngắn gọn về cốt truyện..."
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                     ></textarea>
                   </div>
+
+                  {storyType === 'manga' && (
+                    <div className="manga-notice glass">
+                      <Info size={18} />
+                      <p>Sau khi tạo truyện, bạn có thể tải lên các chương truyện dưới dạng tệp ảnh.</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="form-footer">
-              <button 
-                type="submit" 
-                className={`btn-submit-vibrant ${loading ? 'loading' : ''}`}
-                disabled={loading}
-              >
-                {loading ? 'Đang xử lý...' : (
-                  <>
-                    <CheckCircle size={20} /> Hoàn tất tạo truyện
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </motion.div>
+              <div className="form-footer-hub">
+                <button type="submit" className="btn-create-vibrant">
+                  <Plus size={20} /> Tạo {storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
       </div>
 
       <style jsx="true">{`
-        .create-page {
-          padding: 120px 0 60px;
-          background: linear-gradient(135deg, #f8fafc, #eff6ff);
+        .create-container {
+          padding: 120px 0 80px;
           min-height: 100vh;
+          background: #f8fafc;
         }
 
-        .glass-card-premium {
+        /* Hub Styles */
+        .selection-hub {
+          max-width: 900px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .hub-header { margin-bottom: 4rem; }
+        .hub-title { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1rem; }
+        .hub-subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+
+        .hub-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2.5rem;
+        }
+
+        .type-card {
+          background: white;
+          padding: 3rem 2rem;
+          border-radius: var(--radius-xl);
+          border: 2px solid transparent;
+          box-shadow: var(--shadow-lg);
+          cursor: pointer;
+          position: relative;
+          text-align: left;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          transition: var(--transition);
+        }
+
+        .manga-type:hover { border-color: var(--primary); }
+        .novel-type:hover { border-color: var(--accent); }
+
+        .type-icon-wrapper {
+          width: 80px;
+          height: 80px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+
+        .manga-type .type-icon-wrapper { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+        .novel-type .type-icon-wrapper { background: linear-gradient(135deg, #f43f5e, #fb923c); }
+
+        .type-info h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; }
+        .type-info p { color: var(--text-secondary); line-height: 1.6; }
+
+        .type-footer {
+          margin-top: auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .type-badge {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: var(--primary);
+          color: white;
+          padding: 4px 12px;
+          border-radius: var(--radius-full);
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+
+        /* Form Styles */
+        .form-container-premium {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 3rem;
           background: white;
           border-radius: var(--radius-xl);
           box-shadow: var(--shadow-xl);
-          padding: 2.5rem;
-          border: 1px solid var(--border);
         }
 
-        .card-header-vibrant {
+        .form-header-vibrant {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
+          gap: 2rem;
           margin-bottom: 3rem;
-          border-bottom: 2px solid var(--bg-body);
-          padding-bottom: 1.5rem;
         }
 
-        .back-btn {
-          color: var(--text-secondary);
+        .back-btn-hub {
           background: var(--bg-body);
-          padding: 10px;
+          color: var(--text-secondary);
+          padding: 12px;
           border-radius: 50%;
         }
 
-        .page-title-vibrant {
-          font-size: 2rem;
-          font-weight: 800;
-          color: var(--text-primary);
-          background: linear-gradient(135deg, var(--primary), var(--secondary));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
+        .header-text h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .create-form {
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-        }
-
-        .form-grid {
+        .form-layout {
           display: grid;
-          grid-template-columns: 300px 1fr;
+          grid-template-columns: 320px 1fr;
           gap: 3rem;
         }
 
-        .image-preview-container {
+        .cover-preview-box {
           width: 100%;
           aspect-ratio: 2/3;
           background: var(--bg-body);
           border-radius: var(--radius-lg);
+          border: 2px dashed var(--border);
           overflow: hidden;
+          margin-bottom: 1.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 2px dashed var(--border);
-          margin-bottom: 1.5rem;
         }
 
-        .preview-img { width: 100%; height: 100%; object-fit: cover; }
-        .no-image { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); gap: 0.5rem; }
+        .cover-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .empty-preview { text-align: center; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; }
 
-        .input-group { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
-        .input-group label { font-weight: 700; color: var(--text-primary); font-size: 0.95rem; }
-        .required { color: #f43f5e; }
-
-        .input-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-          background: var(--bg-body);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-md);
-          padding: 0 1rem;
-          transition: var(--transition);
-        }
-
-        .input-wrapper:focus-within {
-          border-color: var(--primary);
-          background: white;
-          box-shadow: 0 0 0 4px var(--primary-light);
-        }
-
-        .input-icon { color: var(--text-muted); }
-        .input-wrapper input, .input-wrapper textarea {
-          background: none;
-          border: none;
-          padding: 1rem 0.75rem;
-          width: 100%;
-          outline: none;
-          color: var(--text-primary);
-          font-weight: 500;
-        }
-
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-
-        .custom-select {
+        .input-group-hub { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .input-group-hub label { font-weight: 700; font-size: 0.95rem; }
+        .input-group-hub input, .input-group-hub textarea {
           background: var(--bg-body);
           border: 1px solid var(--border);
           padding: 1rem;
           border-radius: var(--radius-md);
-          font-weight: 600;
           outline: none;
+          font-weight: 500;
         }
 
-        .form-footer {
+        .input-group-hub input:focus { border-color: var(--primary); background: white; }
+
+        .input-row-hub { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+        .manga-notice {
+          padding: 1rem;
+          background: var(--primary-light);
+          border: 1px solid rgba(99, 102, 241, 0.2);
+          border-radius: var(--radius-md);
           display: flex;
-          justify-content: flex-end;
+          gap: 1rem;
+          color: var(--primary);
+          font-weight: 500;
+          font-size: 0.9rem;
+        }
+
+        .form-footer-hub {
+          margin-top: 2rem;
           padding-top: 2rem;
           border-top: 1px solid var(--border);
+          display: flex;
+          justify-content: flex-end;
         }
 
-        .btn-submit-vibrant {
+        .btn-create-vibrant {
           background: linear-gradient(135deg, var(--primary), var(--accent));
           color: white;
-          padding: 1.25rem 3rem;
+          padding: 1rem 3rem;
           border-radius: var(--radius-lg);
           font-weight: 800;
           display: flex;
@@ -318,14 +366,10 @@ const CreateManga = () => {
           box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
         }
 
-        .btn-submit-vibrant:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
-        }
-
         @media (max-width: 900px) {
-          .form-grid { grid-template-columns: 1fr; }
-          .image-upload-section { max-width: 300px; margin: 0 auto; }
+          .hub-grid { grid-template-columns: 1fr; }
+          .form-layout { grid-template-columns: 1fr; }
+          .cover-upload-side { max-width: 320px; margin: 0 auto; }
         }
       `}</style>
     </div>
