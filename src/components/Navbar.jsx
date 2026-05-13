@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, User, Menu, X, BookOpen, Compass, History, 
-  Bookmark, Settings, Power, Heart, Book, Layers, PlusCircle, CreditCard, Bell
+  Bookmark, Settings, Power, Heart, Book, Layers, PlusCircle, CreditCard, Bell, ChevronRight, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,16 +33,22 @@ const Navbar = () => {
     };
   }, []);
 
+  const closeAllMenus = () => {
+    setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
+  };
+
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled glass' : ''}`}>
       <div className="container nav-content">
-        <Link to="/" className="logo">
+        <Link to="/" className="logo" onClick={closeAllMenus}>
           <div className="logo-icon-wrapper">
-            <BookOpen className="logo-icon" size={24} />
+            <BookOpen className="logo-icon" size={20} />
           </div>
           <span className="logo-text">Manhwa<span className="gradient-text">Hub</span></span>
         </Link>
 
+        {/* Desktop Links */}
         <div className="nav-links desktop-only">
           <Link to="/" className="nav-link active">Trang chủ</Link>
           <Link to="/genres" className="nav-link">Thể loại</Link>
@@ -57,18 +63,13 @@ const Navbar = () => {
             <input type="text" placeholder="Tìm kiếm truyện..." />
           </div>
           
-          <button className="icon-btn action-circle mobile-only">
-            <Search size={20} />
-          </button>
-
           {user ? (
             <div className="user-section" ref={userMenuRef}>
-              <div className="action-icons desktop-only">
-                <button className="icon-btn action-circle">
-                  <Bell size={20} />
-                  <span className="dot-badge"></span>
-                </button>
-              </div>
+              <button className="icon-btn action-circle desktop-only">
+                <Bell size={20} />
+                <span className="dot-badge"></span>
+              </button>
+              
               <div 
                 className="avatar-wrapper"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -86,7 +87,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 15, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                    className="user-dropdown glass-card"
+                    className="user-dropdown glass-card desktop-only"
                   >
                     <div className="dropdown-header">
                       <div className="user-profile-header">
@@ -101,35 +102,18 @@ const Navbar = () => {
                         </div>
                       </div>
                     </div>
-                    
                     <div className="dropdown-divider"></div>
-                    
                     <div className="dropdown-items">
-                      <Link to="/profile" className="dropdown-item">
+                      <Link to="/profile" className="dropdown-item" onClick={closeAllMenus}>
                         <User size={18} /> Thông tin cá nhân
                       </Link>
-                      <Link to="/settings" className="dropdown-item">
+                      <Link to="/settings" className="dropdown-item" onClick={closeAllMenus}>
                         <Settings size={18} /> Cài đặt
                       </Link>
-                      <Link to="/history" className="dropdown-item">
-                        <History size={18} /> Lịch sử đọc
-                      </Link>
-                      <Link to="/follow" className="dropdown-item">
-                        <Heart size={18} /> Truyện đang theo dõi
-                      </Link>
-                      <Link to="/stats" className="dropdown-item">
-                        <Layers size={18} /> Thế lực
-                      </Link>
-                      <Link to="/donate" className="dropdown-item donate-item">
-                        <CreditCard size={18} /> Donate
-                      </Link>
-
                       <div className="dropdown-divider"></div>
-                      
-                      <Link to="/create-manga" className="dropdown-item create-btn">
+                      <Link to="/create-manga" className="dropdown-item create-btn" onClick={closeAllMenus}>
                         <PlusCircle size={18} /> Đăng truyện mới
                       </Link>
-
                       <button onClick={logout} className="dropdown-item logout">
                         <Power size={18} /> Đăng xuất
                       </button>
@@ -139,9 +123,7 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <Link to="/login" className="login-btn-new">
-              Đăng nhập
-            </Link>
+            <Link to="/login" className="login-btn-new desktop-only">Đăng nhập</Link>
           )}
 
           <button 
@@ -153,257 +135,117 @@ const Navbar = () => {
         </div>
       </div>
 
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mobile-overlay"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="mobile-sidebar glass"
+            >
+              <div className="sidebar-header">
+                 <div className="logo">
+                    <div className="logo-icon-wrapper">
+                      <BookOpen className="logo-icon" size={18} />
+                    </div>
+                    <span className="logo-text">Manhwa<span className="gradient-text">Hub</span></span>
+                  </div>
+                  <button onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button>
+              </div>
+
+              {user ? (
+                <div className="sidebar-user-info">
+                  <img 
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=6366f1&color=fff`} 
+                    alt={user.username} 
+                    className="sidebar-avatar"
+                  />
+                  <div className="user-meta">
+                    <span className="username-display">{user.username}</span>
+                    <span className="user-role">{user.role || 'Độc giả'}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="sidebar-auth-btns">
+                  <Link to="/login" className="btn-sidebar-primary" onClick={closeAllMenus}>Đăng nhập</Link>
+                  <Link to="/register" className="btn-sidebar-outline" onClick={closeAllMenus}>Đăng ký</Link>
+                </div>
+              )}
+
+              <div className="sidebar-links">
+                <p className="sidebar-label">Danh mục</p>
+                <Link to="/" className="sidebar-link active" onClick={closeAllMenus}><Compass size={20} /> Trang chủ <ChevronRight size={16} /></Link>
+                <Link to="/genres" className="sidebar-link" onClick={closeAllMenus}><Layers size={20} /> Thể loại <ChevronRight size={16} /></Link>
+                <Link to="/ranking" className="sidebar-link" onClick={closeAllMenus}><TrendingUp size={20} /> Xếp hạng <ChevronRight size={16} /></Link>
+                
+                <p className="sidebar-label">Thư viện của bạn</p>
+                <Link to="/history" className="sidebar-link" onClick={closeAllMenus}><History size={20} /> Lịch sử đọc</Link>
+                <Link to="/follow" className="sidebar-link" onClick={closeAllMenus}><Heart size={20} /> Đang theo dõi</Link>
+                <Link to="/bookmarks" className="sidebar-link" onClick={closeAllMenus}><Bookmark size={20} /> Đánh dấu</Link>
+
+                {user && (
+                  <>
+                    <p className="sidebar-label">Quản lý</p>
+                    <Link to="/create-manga" className="sidebar-link create-highlight" onClick={closeAllMenus}><PlusCircle size={20} /> Đăng truyện mới</Link>
+                    <Link to="/donate" className="sidebar-link" onClick={closeAllMenus}><CreditCard size={20} /> Donate ủng hộ</Link>
+                    <button onClick={logout} className="sidebar-link logout-btn-mobile"><Power size={20} /> Đăng xuất</button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <style jsx="true">{`
-        .navbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 80px;
-          z-index: 1000;
-          transition: var(--transition);
-          display: flex;
-          align-items: center;
-          background: transparent;
-        }
-
-        .navbar.scrolled {
-          height: 70px;
-          box-shadow: var(--shadow-md);
-        }
-
-        .nav-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-        }
-
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-size: 1.5rem;
-          font-weight: 800;
-        }
-
-        .logo-icon-wrapper {
-          background: linear-gradient(135deg, var(--primary), var(--accent));
-          color: white;
-          padding: 8px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-        }
-
-        .nav-links {
-          display: flex;
-          gap: 2rem;
-        }
-
-        .nav-link {
-          font-weight: 600;
-          color: var(--text-secondary);
-          font-size: 0.95rem;
-        }
-
-        .nav-link:hover, .nav-link.active {
-          color: var(--primary);
-        }
-
-        .nav-actions {
-          display: flex;
-          align-items: center;
-          gap: 1.25rem;
-        }
-
-        .search-bar {
-          background: white;
-          border: 1px solid var(--border);
-          border-radius: var(--radius-full);
-          padding: 0.6rem 1.2rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          width: 220px;
-          transition: var(--transition);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .search-bar:focus-within {
-          width: 280px;
-          border-color: var(--primary);
-          box-shadow: 0 0 0 4px var(--primary-light);
-        }
-
-        .search-bar input {
-          background: none;
-          border: none;
-          color: var(--text-primary);
-          width: 100%;
-          outline: none;
-        }
-
-        .login-btn-new {
-          background: var(--primary);
-          color: white;
-          padding: 0.7rem 1.5rem;
-          border-radius: var(--radius-lg);
-          font-weight: 700;
-          box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-        }
-
-        .login-btn-new:hover {
-          background: var(--primary-hover);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .user-section {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          position: relative;
-        }
-
-        .action-circle {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: white;
-          border: 1px solid var(--border);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--text-secondary);
-        }
-
-        .action-circle:hover {
-          background: var(--primary-light);
-          color: var(--primary);
-          border-color: var(--primary);
-        }
-
-        .dot-badge {
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 8px;
-          height: 8px;
-          background: var(--secondary);
-          border-radius: 50%;
-          border: 2px solid white;
-        }
-
-        .avatar-wrapper {
-          cursor: pointer;
-          border: 2px solid transparent;
-          border-radius: 50%;
-          padding: 2px;
-          transition: var(--transition);
-        }
-
-        .avatar-wrapper:hover {
-          border-color: var(--primary);
-        }
-
-        .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          object-fit: cover;
-          box-shadow: var(--shadow-sm);
-        }
-
-        .glass-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border: 1px solid var(--border);
-          box-shadow: var(--shadow-xl);
-          border-radius: var(--radius-lg);
-        }
-
-        .user-dropdown {
-          position: absolute;
-          top: calc(100% + 15px);
-          right: 0;
-          width: 260px;
-          overflow: hidden;
-          z-index: 1001;
-        }
-
-        .user-profile-header {
-          padding: 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .dropdown-avatar {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-        }
-
-        .user-meta {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .username-display {
-          font-weight: 800;
-          font-size: 1rem;
-          color: var(--text-primary);
-        }
-
-        .user-role {
-          font-size: 0.8rem;
-          color: var(--text-secondary);
-        }
-
-        .dropdown-items {
-          padding: 0.5rem;
-        }
-
-        .dropdown-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem 1rem;
-          color: var(--text-secondary);
-          border-radius: var(--radius-md);
-          font-weight: 600;
-          font-size: 0.9rem;
-          width: 100%;
-        }
-
-        .dropdown-item:hover {
-          background: var(--primary-light);
-          color: var(--primary);
-        }
-
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; z-index: 1000; transition: var(--transition); display: flex; align-items: center; background: transparent; }
+        .navbar.scrolled { height: 60px; box-shadow: var(--shadow-md); }
+        .nav-content { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem; font-weight: 800; }
+        .logo-icon-wrapper { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 6px; border-radius: 10px; display: flex; }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-link { font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; }
+        .nav-link.active { color: var(--primary); }
+        .nav-actions { display: flex; align-items: center; gap: 1rem; }
+        .search-bar { background: white; border: 1px solid var(--border); border-radius: var(--radius-full); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; width: 180px; }
+        .search-bar input { background: none; border: none; width: 100%; outline: none; font-size: 0.85rem; }
+        .login-btn-new { background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; }
+        .user-section { display: flex; align-items: center; gap: 0.75rem; position: relative; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; }
+        .user-dropdown { position: absolute; top: calc(100% + 15px); right: 0; width: 240px; }
+        .user-profile-header { padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .dropdown-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .username-display { font-weight: 700; color: var(--text-primary); }
+        .user-role { font-size: 0.75rem; color: var(--text-secondary); }
+        .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; color: var(--text-secondary); border-radius: var(--radius-md); font-weight: 600; font-size: 0.85rem; }
+        .dropdown-item:hover { background: var(--primary-light); color: var(--primary); }
+        .dropdown-item.create-btn { background: var(--primary); color: white; margin-top: 0.5rem; }
         .dropdown-item.logout { color: #f43f5e; }
-        .dropdown-item.donate-item { color: #0ea5e9; }
-        .dropdown-item.create-btn {
-          background: linear-gradient(135deg, var(--primary), var(--accent));
-          color: white;
-          margin-bottom: 0.5rem;
-        }
         
-        .dropdown-item.create-btn:hover {
-          transform: scale(1.02);
-          color: white;
-        }
-
-        .dropdown-divider {
-          height: 1px;
-          background: var(--border);
-          margin: 0.25rem 0;
-        }
-
         .mobile-only { display: none; }
+        .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 2000; }
+        .mobile-sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 85%; max-width: 320px; background: white; z-index: 2001; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .sidebar-user-info { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-body); border-radius: var(--radius-lg); }
+        .sidebar-avatar { width: 50px; height: 50px; border-radius: 50%; }
+        .sidebar-auth-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn-sidebar-primary { background: var(--primary); color: white; text-align: center; padding: 0.75rem; border-radius: var(--radius-md); font-weight: 700; }
+        .btn-sidebar-outline { border: 2px solid var(--border); color: var(--text-primary); text-align: center; padding: 0.75rem; border-radius: var(--radius-md); font-weight: 700; }
+        .sidebar-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 1.5rem 0 0.75rem; }
+        .sidebar-link { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; color: var(--text-secondary); font-weight: 600; border-radius: var(--radius-md); }
+        .sidebar-link svg { color: var(--text-muted); }
+        .sidebar-link.active { background: var(--primary-light); color: var(--primary); }
+        .create-highlight { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white !important; }
+        .logout-btn-mobile { width: 100%; color: #f43f5e; }
 
         @media (max-width: 1024px) {
           .desktop-only { display: none; }
