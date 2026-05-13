@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Globe, Smartphone, ArrowRight, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -31,237 +30,207 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container glass animate-fade-in">
+    <div className="auth-page-new">
+      <div className="auth-visual desktop-only">
+        <div className="visual-content">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="visual-logo"
+          >
+            <ShieldCheck size={64} />
+          </motion.div>
+          <h2>Bảo mật & Tin cậy</h2>
+          <p>Chào mừng bạn quay trở lại với cộng đồng ManhwaHub. Hãy đăng nhập để tiếp tục hành trình của mình.</p>
+        </div>
+      </div>
+
+      <div className="auth-form-side">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="auth-header"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="auth-card-clean"
         >
-          <h1 className="auth-title">Chào mừng trở lại</h1>
-          <p className="auth-subtitle">Đăng nhập để theo dõi bộ truyện yêu thích của bạn</p>
-          {error && <div className="error-alert">{error}</div>}
-        </motion.div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label>Tên đăng nhập</label>
-            <div className="input-wrapper">
-              <User size={20} className="input-icon" />
-               <input 
-                type="text" 
-                placeholder="Nhập tên đăng nhập" 
-                required 
-                value={formData.username}
-                onChange={(e) => setFormData({...formData, username: e.target.value})}
-              />
-            </div>
+          <div className="auth-header-vibrant">
+            <h1 className="gradient-text">Chào mừng trở lại!</h1>
+            <p>Vui lòng nhập thông tin đăng nhập của bạn</p>
           </div>
 
-          <div className="input-group">
-            <div className="label-row">
+          {error && <div className="error-alert-clean">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form-vibrant">
+            <div className="input-group-clean">
+              <label>Tên đăng nhập</label>
+              <div className="input-field">
+                <User size={20} />
+                <input 
+                  type="text" 
+                  placeholder="Nhập tên đăng nhập"
+                  value={formData.username}
+                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="input-group-clean">
               <label>Mật khẩu</label>
-              <Link to="/forgot-password" size={12} className="forgot-link">Quên mật khẩu?</Link>
+              <div className="input-field">
+                <Lock size={20} />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  required
+                />
+                <button 
+                  type="button" 
+                  className="eye-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <Link to="/forgot-password" alt="Quên mật khẩu?" className="forgot-link">Quên mật khẩu?</Link>
             </div>
-            <div className="input-wrapper">
-              <Lock size={20} className="input-icon" />
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="••••••••" 
-                required 
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-              <button 
-                type="button" 
-                className="eye-btn"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
+
+            <button type="submit" className="btn-auth-primary">
+              Đăng nhập ngay <ArrowRight size={20} />
+            </button>
+          </form>
+
+          <div className="auth-footer-clean">
+            <span>Chưa có tài khoản?</span>
+            <Link to="/register" className="switch-auth">Đăng ký miễn phí</Link>
           </div>
-
-          <button type="submit" className="submit-btn">
-            Đăng nhập <ArrowRight size={20} />
-          </button>
-        </form>
-
-        <div className="auth-divider">
-          <span>Hoặc tiếp tục với</span>
-        </div>
-
-        <div className="social-btns">
-          <button className="social-btn glass">
-            <Globe size={20} /> Google
-          </button>
-          <button className="social-btn glass">
-            <Smartphone size={20} /> Facebook
-          </button>
-        </div>
-
-        <p className="auth-footer">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-        </p>
+        </motion.div>
       </div>
 
       <style jsx="true">{`
-        .auth-page {
+        .auth-page-new {
+          display: flex;
           min-height: 100vh;
+          background: #ffffff;
+        }
+
+        .auth-visual {
+          flex: 1;
+          background: linear-gradient(135deg, var(--primary), var(--accent));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem;
+          color: white;
+          text-align: center;
+        }
+
+        .visual-content h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
+        .visual-content p { font-size: 1.1rem; opacity: 0.9; max-width: 400px; line-height: 1.6; }
+        .visual-logo { margin-bottom: 2rem; color: rgba(255, 255, 255, 0.3); }
+
+        .auth-form-side {
+          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2rem;
-          background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 40%),
-                      radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.15), transparent 40%);
+          background: #f8fafc;
         }
 
-        .auth-container {
+        .auth-card-clean {
           width: 100%;
           max-width: 450px;
           padding: 3rem;
-          border-radius: var(--radius-lg);
+          background: white;
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
         }
 
-        .auth-header {
-          text-align: center;
-          margin-bottom: 2.5rem;
-        }
+        .auth-header-vibrant { margin-bottom: 2.5rem; }
+        .auth-header-vibrant h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .auth-header-vibrant p { color: var(--text-secondary); font-weight: 500; }
 
-        .auth-title {
-          font-size: 2rem;
-          font-weight: 800;
-          margin-bottom: 0.5rem;
-        }
+        .auth-form-vibrant { display: flex; flex-direction: column; gap: 1.5rem; }
 
-        .auth-subtitle {
-          color: var(--text-secondary);
-        }
+        .input-group-clean { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group-clean label { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
 
-        .auth-form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .label-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .forgot-link {
-          font-size: 0.85rem;
-          color: var(--primary);
-        }
-
-        .input-wrapper {
+        .input-field {
           position: relative;
           display: flex;
           align-items: center;
-        }
-
-        .input-icon {
-          position: absolute;
-          left: 1rem;
-          color: var(--text-muted);
-        }
-
-        .input-wrapper input {
-          width: 100%;
-          background: var(--bg-surface-elevated);
-          border: 1px solid var(--border);
-          padding: 0.8rem 1rem 0.8rem 3rem;
+          gap: 0.75rem;
+          background: #f1f5f9;
+          padding: 0 1rem;
           border-radius: var(--radius-md);
-          color: white;
-          outline: none;
+          border: 2px solid transparent;
           transition: var(--transition);
         }
 
-        .input-wrapper input:focus {
+        .input-field:focus-within {
           border-color: var(--primary);
-          box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+          background: white;
+          box-shadow: 0 0 0 4px var(--primary-light);
         }
 
-        .eye-btn {
-          position: absolute;
-          right: 1rem;
-          color: var(--text-muted);
+        .input-field input {
+          width: 100%;
+          padding: 1rem 0;
+          background: none;
+          border: none;
+          outline: none;
+          font-weight: 600;
+          color: var(--text-primary);
         }
 
-        .submit-btn {
+        .eye-toggle { color: var(--text-muted); }
+        .forgot-link { align-self: flex-end; font-size: 0.85rem; font-weight: 600; color: var(--primary); }
+
+        .btn-auth-primary {
           background: var(--primary);
           color: white;
           padding: 1rem;
           border-radius: var(--radius-md);
-          font-weight: 700;
+          font-weight: 800;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 0.75rem;
-          margin-top: 0.5rem;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+          margin-top: 1rem;
         }
 
-        .submit-btn:hover {
+        .btn-auth-primary:hover {
           background: var(--primary-hover);
           transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
         }
 
-        .auth-divider {
-          margin: 2rem 0;
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          color: var(--text-muted);
-          font-size: 0.85rem;
-        }
-
-        .auth-divider::before, .auth-divider::after {
-          content: '';
-          flex: 1;
-          height: 1px;
-          background: var(--border);
-        }
-
-        .social-btns {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 2rem;
-        }
-
-        .social-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
+        .error-alert-clean {
+          background: #fff1f2;
+          color: #e11d48;
           padding: 0.75rem;
           border-radius: var(--radius-md);
-          color: white;
-          font-weight: 600;
+          margin-bottom: 1.5rem;
           font-size: 0.9rem;
-        }
-
-        .auth-footer {
-          text-align: center;
-          color: var(--text-secondary);
-          font-size: 0.95rem;
-        }
-
-        .auth-footer a {
-          color: var(--primary);
           font-weight: 600;
+          border: 1px solid #ffe4e6;
+          text-align: center;
         }
 
-        @media (max-width: 480px) {
-          .auth-container { padding: 2rem; }
-          .social-btns { grid-template-columns: 1fr; }
+        .auth-footer-clean {
+          margin-top: 2rem;
+          text-align: center;
+          font-size: 0.95rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .switch-auth { color: var(--primary); font-weight: 700; margin-left: 0.5rem; }
+
+        @media (max-width: 1024px) {
+          .auth-visual { display: none; }
         }
       `}</style>
     </div>
