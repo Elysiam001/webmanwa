@@ -6,33 +6,8 @@ import { motion } from 'framer-motion';
 const Home = () => {
   const [activeSlide, setActiveSlide] = useState(0);
 
-  const bannerManga = [
-    {
-      id: 1,
-      title: "Solo Leveling",
-      description: "Trong một thế giới nơi những thợ săn, những người sở hữu sức mạnh ma thuật, phải chiến đấu với những con quái vật để bảo vệ loài người khỏi sự diệt vong nhất định...",
-      image: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=1400",
-      genre: ["Action", "Fantasy", "Adventure"],
-      status: "Hot"
-    },
-    {
-      id: 2,
-      title: "The Beginning After The End",
-      description: "Vua Grey có sức mạnh, sự giàu có và uy tín vô song trong một thế giới được thống trị bởi khả năng võ thuật. Tuy nhiên, sự cô độc vẫn bám lấy những người có quyền lực lớn...",
-      image: "https://images.unsplash.com/photo-1578632292335-df3abbb0d586?auto=format&fit=crop&q=80&w=1400",
-      genre: ["Action", "Fantasy", "Isekai"],
-      status: "Trending"
-    }
-  ];
-
-  const latestUpdates = [
-    { id: 1, title: "Omniscient Reader's Viewpoint", chapter: "Chapter 210", thumbnail: "https://images.unsplash.com/photo-1601850494422-3cf14624b0bb?auto=format&fit=crop&q=80&w=400", rating: 4.9, views: "1.2M" },
-    { id: 2, title: "Nano Machine", chapter: "Chapter 185", thumbnail: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400", rating: 4.8, views: "980K" },
-    { id: 3, title: "The Legend of the Northern Blade", chapter: "Chapter 160", thumbnail: "https://images.unsplash.com/photo-1541562232579-512a21360020?auto=format&fit=crop&q=80&w=400", rating: 4.9, views: "2.1M" },
-    { id: 4, title: "Tower of God", chapter: "Chapter 590", thumbnail: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=400", rating: 4.7, views: "5.5M" },
-    { id: 5, title: "Wind Breaker", chapter: "Chapter 480", thumbnail: "https://images.unsplash.com/photo-1578632292335-df3abbb0d586?auto=format&fit=crop&q=80&w=400", rating: 4.8, views: "3.2M" },
-    { id: 6, title: "Lookism", chapter: "Chapter 490", thumbnail: "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?auto=format&fit=crop&q=80&w=400", rating: 4.6, views: "4.8M" },
-  ];
+  const bannerManga = [];
+  const latestUpdates = [];
 
   return (
     <div className="home-page">
@@ -82,34 +57,40 @@ const Home = () => {
           </div>
           
           <div className="manga-grid">
-            {latestUpdates.map((manga, idx) => (
-              <motion.div 
-                key={manga.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -10 }}
-              >
-                <Link to={`/manga/${manga.id}`} className="manga-card">
-                  <div className="card-thumb">
-                    <img src={manga.thumbnail} alt={manga.title} />
-                    <div className="card-overlay">
-                      <span className="rating"><Star size={14} fill="currentColor" /> {manga.rating}</span>
+            {latestUpdates.length > 0 ? (
+              latestUpdates.map((manga, idx) => (
+                <motion.div 
+                  key={manga.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  whileHover={{ y: -10 }}
+                >
+                  <Link to={`/manga/${manga.id}`} className="manga-card">
+                    <div className="card-thumb">
+                      <img src={manga.thumbnail} alt={manga.title} />
+                      <div className="card-overlay">
+                        <span className="rating"><Star size={14} fill="currentColor" /> {manga.rating}</span>
+                      </div>
+                      <div className="card-hover-info">
+                        <button className="read-btn">Đọc ngay</button>
+                      </div>
                     </div>
-                    <div className="card-hover-info">
-                      <button className="read-btn">Đọc tiếp</button>
+                    <div className="card-info">
+                      <h3 className="manga-title">{manga.title}</h3>
+                      <div className="manga-stats">
+                        <span className="chapter">{manga.chapter}</span>
+                        <span className="views"><Flame size={12} /> {manga.views}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="card-info">
-                    <h3 className="manga-title">{manga.title}</h3>
-                    <div className="manga-meta">
-                      <span className="chapter">{manga.chapter}</span>
-                      <span className="views"><Clock size={12} /> {manga.views}</span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <div className="no-data glass">
+                <p>Chưa có truyện nào được đăng. Hãy là người đầu tiên!</p>
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -154,6 +135,14 @@ const Home = () => {
         .manga-card:hover .manga-title { color: var(--primary); }
         .manga-meta { display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem; }
         .chapter { color: var(--accent); font-weight: 500; }
+        .no-data {
+          grid-column: 1 / -1;
+          padding: 4rem;
+          text-align: center;
+          color: var(--text-secondary);
+          border-radius: var(--radius-lg);
+          font-size: 1.1rem;
+        }
         @media (max-width: 768px) {
           .banner-title { font-size: 2.25rem; }
           .hero-section { height: 450px; }
