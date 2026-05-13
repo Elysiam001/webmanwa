@@ -396,8 +396,11 @@ const Navbar = () => {
           margin: 0.25rem 0;
         }
 
+        .mobile-only { display: none; }
+
         @media (max-width: 1024px) {
           .desktop-only { display: none; }
+          .mobile-only { display: flex; }
         }
       `}</style>
     </nav>
