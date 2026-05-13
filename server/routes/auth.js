@@ -21,7 +21,6 @@ router.post('/register', async (req, res) => {
     // Tạo user mới
     user = new User({
       username,
-      email,
       password: hashedPassword
     });
 
@@ -58,7 +57,6 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
-        email: user.email,
         role: user.role,
         avatar: user.avatar
       }
