@@ -24,7 +24,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/create" element={<CreateManga />} />
+            <Route path="/create-manga" element={<CreateManga />} />
             <Route path="/dashboard/add-chapter/:id" element={<AddChapter />} />
             <Route path="/dashboard/novel-editor/:id" element={<NovelEditor />} />
           </Routes>
