@@ -117,6 +117,12 @@ const Navbar = () => {
                       <Link to="/follow" className="dropdown-item">
                         <Heart size={18} /> Truyện đang theo dõi
                       </Link>
+                      <Link to="/stats" className="dropdown-item">
+                        <Layers size={18} /> Thế lực
+                      </Link>
+                      <Link to="/donate" className="dropdown-item donate-item">
+                        <CreditCard size={18} /> Donate
+                      </Link>
 
                       <div className="dropdown-divider"></div>
                       
@@ -379,6 +385,7 @@ const Navbar = () => {
         }
 
         .dropdown-item.logout { color: #f43f5e; }
+        .dropdown-item.donate-item { color: #0ea5e9; }
         .dropdown-item.create-btn {
           background: linear-gradient(135deg, var(--primary), var(--accent));
           color: white;
