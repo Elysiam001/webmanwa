@@ -30,7 +30,8 @@ mongoose.connect(MONGODB_URI)
 // Phục vụ Frontend (khi deploy lên Render)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
-  app.get('(.*)', (req, res) => {
+  // Catch-all: Gửi tất cả các request còn lại về index.html của React
+  app.use((req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
 } else {
