@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, User, Menu, X, BookOpen, Compass, History, Bookmark } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -194,6 +196,7 @@ const Navbar = () => {
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
         }
+        
         .user-profile {
           display: flex;
           align-items: center;
