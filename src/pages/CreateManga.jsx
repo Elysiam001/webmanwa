@@ -116,15 +116,27 @@ const CreateManga = () => {
                       </div>
                     )}
                   </div>
-                  <div className="input-group-hub">
-                    <label>Link ảnh bìa (URL)</label>
-                    <input 
-                      type="url" 
-                      placeholder="https://..."
-                      value={formData.coverImage}
-                      onChange={(e) => setFormData({...formData, coverImage: e.target.value})}
-                      required
-                    />
+                  
+                  <div className="upload-options">
+                    <label className="btn-upload-local">
+                      <ImageIcon size={18} /> Tải ảnh từ máy
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleFileChange} 
+                        hidden 
+                      />
+                    </label>
+                    <div className="or-divider">hoặc</div>
+                    <div className="input-group-hub">
+                      <label>Dán link ảnh (URL)</label>
+                      <input 
+                        type="url" 
+                        placeholder="https://..."
+                        value={formData.coverImage}
+                        onChange={(e) => setFormData({...formData, coverImage: e.target.value})}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -318,6 +330,51 @@ const CreateManga = () => {
 
         .cover-preview-box img { width: 100%; height: 100%; object-fit: cover; }
         .empty-preview { text-align: center; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .upload-options {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .btn-upload-local {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          background: white;
+          border: 2px solid var(--primary);
+          color: var(--primary);
+          padding: 0.75rem;
+          border-radius: var(--radius-md);
+          font-weight: 700;
+          cursor: pointer;
+          transition: var(--transition);
+        }
+
+        .btn-upload-local:hover {
+          background: var(--primary-light);
+        }
+
+        .or-divider {
+          text-align: center;
+          position: relative;
+          color: var(--text-muted);
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+
+        .or-divider::before, .or-divider::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          width: 35%;
+          height: 1px;
+          background: var(--border);
+        }
+
+        .or-divider::before { left: 0; }
+        .or-divider::after { right: 0; }
 
         .input-group-hub { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
         .input-group-hub label { font-weight: 700; font-size: 0.95rem; }
