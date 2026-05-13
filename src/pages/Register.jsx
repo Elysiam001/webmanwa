@@ -5,11 +5,36 @@ import { motion } from 'framer-motion';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ username: '', password: '', confirmPassword: '' });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/');
+    setError('');
+
+    // Kiểm tra mật khẩu khớp nhau
+    if (formData.password !== formData.confirmPassword) {
+      return setError('Mật khẩu nhập lại không khớp');
+    }
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      
+      alert('Đăng ký thành công! Hãy đăng nhập.');
+      navigate('/login');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -21,23 +46,22 @@ const Register = () => {
           className="auth-header"
         >
           <h1 className="auth-title">Tham gia ngay</h1>
-          <p className="auth-subtitle">Tạo tài khoản để trải nghiệm đầy đủ tính năng</p>
+          <p className="auth-subtitle">Tạo tài khoản bằng tên đăng nhập</p>
+          {error && <div className="error-alert">{error}</div>}
         </motion.div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Tên người dùng</label>
+            <label>Tên đăng nhập</label>
             <div className="input-wrapper">
               <User size={20} className="input-icon" />
-              <input type="text" placeholder="username" required />
-            </div>
-          </div>
-
-          <div className="input-group">
-            <label>Email</label>
-            <div className="input-wrapper">
-              <Mail size={20} className="input-icon" />
-              <input type="email" placeholder="name@example.com" required />
+              <input 
+                type="text" 
+                placeholder="Ví dụ: tencuaban123" 
+                required 
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+              />
             </div>
           </div>
 
@@ -49,6 +73,22 @@ const Register = () => {
                 type={showPassword ? "text" : "password"} 
                 placeholder="••••••••" 
                 required 
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label>Nhập lại mật khẩu</label>
+            <div className="input-wrapper">
+              <Lock size={20} className="input-icon" />
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="••••••••" 
+                required 
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
               />
               <button 
                 type="button" 

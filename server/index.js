@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
 
 dotenv.config();
 
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use('/api/auth', authRoutes);
+
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/manhwahub';
 mongoose.connect(MONGODB_URI)
@@ -24,7 +28,6 @@ mongoose.connect(MONGODB_URI)
   .catch(err => console.error('❌ Lỗi kết nối MongoDB:', err));
 
 // Routes
-// app.use('/api/auth', require('./routes/auth'));
 // app.use('/api/manga', require('./routes/manga'));
 
 // Phục vụ Frontend (khi deploy lên Render)

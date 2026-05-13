@@ -1,16 +1,33 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Globe, Smartphone, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Globe, Smartphone, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Giả lập đăng nhập thành công
-    navigate('/');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      
+      login(data.user, data.token);
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -23,14 +40,21 @@ const Login = () => {
         >
           <h1 className="auth-title">Chào mừng trở lại</h1>
           <p className="auth-subtitle">Đăng nhập để theo dõi bộ truyện yêu thích của bạn</p>
+          {error && <div className="error-alert">{error}</div>}
         </motion.div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Email</label>
+            <label>Tên đăng nhập</label>
             <div className="input-wrapper">
-              <Mail size={20} className="input-icon" />
-              <input type="email" placeholder="name@example.com" required />
+              <User size={20} className="input-icon" />
+               <input 
+                type="text" 
+                placeholder="Nhập tên đăng nhập" 
+                required 
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+              />
             </div>
           </div>
 
@@ -45,6 +69,8 @@ const Login = () => {
                 type={showPassword ? "text" : "password"} 
                 placeholder="••••••••" 
                 required 
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
               />
               <button 
                 type="button" 
