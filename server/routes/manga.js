@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import express from 'express';
 import Manga from '../models/Manga.js';
 import Chapter from '../models/Chapter.js';
@@ -43,7 +44,7 @@ router.post('/', auth, async (req, res) => {
       cover,
       genres: (genres || '').split(',').map(g => g.trim()).filter(g => g !== ''),
       type,
-      uploader: req.user.id
+      uploader: new mongoose.Types.ObjectId(req.user.id)
     });
 
     const manga = await newManga.save();
@@ -104,7 +105,8 @@ router.get('/:id', async (req, res) => {
 router.get('/user', auth, async (req, res) => {
   try {
     console.log('🔍 Đang tìm truyện của User ID:', req.user.id);
-    const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 }).lean();
+    const userObjectId = new mongoose.Types.ObjectId(req.user.id);
+    const mangas = await Manga.find({ uploader: userObjectId }).sort({ createdAt: -1 }).lean();
     
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
