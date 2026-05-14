@@ -11,6 +11,8 @@ router.post('/', auth, async (req, res) => {
   try {
     const { title, otherTitle, description, author, cover, genres, type } = req.body;
 
+    console.log('🚀 Đang tạo truyện mới cho User ID:', req.user.id);
+
     const newManga = new Manga({
       title,
       otherTitle,
@@ -23,6 +25,7 @@ router.post('/', auth, async (req, res) => {
     });
 
     const manga = await newManga.save();
+    console.log('✅ Truyện đã được lưu vào DB với ID:', manga._id);
     res.json(manga);
   } catch (err) {
     console.error(err.message);
@@ -71,7 +74,9 @@ router.get('/:id', async (req, res) => {
 // @desc    Lấy danh sách truyện của người dùng hiện tại
 router.get('/user', auth, async (req, res) => {
   try {
+    console.log('🔍 Đang tìm truyện của User ID:', req.user.id);
     const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 }).lean();
+    console.log(`📊 Tìm thấy ${mangas.length} bộ truyện cho user này.`);
     
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
