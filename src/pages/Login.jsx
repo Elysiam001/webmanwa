@@ -13,19 +13,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message || 'Lỗi đăng nhập');
       
       login(data.user, data.token);
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(err.message === 'Failed to fetch' ? 'Lỗi kết nối Server' : err.message);
     }
   };
 

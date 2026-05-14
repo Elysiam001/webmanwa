@@ -7,6 +7,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Dọn dẹp phím cũ (nếu có)
+    localStorage.removeItem('manhwahub_token');
+    localStorage.removeItem('manhwahub_user');
+
     // Kiểm tra xem đã có token trong localStorage chưa
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
