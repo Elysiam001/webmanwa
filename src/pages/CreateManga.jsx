@@ -7,10 +7,11 @@ import {
 import { motion } from 'framer-motion';
 
 const CreateManga = () => {
-  const [step, setStep] = useState(1); // 1: Chọn loại, 2: Nhập thông tin
-  const [storyType, setStoryType] = useState(null); // 'manga' hoặc 'novel'
+  const [step, setStep] = useState(1);
+  const [storyType, setStoryType] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
+    otherTitle: '',
     description: '',
     author: '',
     genres: '',
@@ -27,6 +28,9 @@ const CreateManga = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        return alert('Ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, coverImage: reader.result });
@@ -37,10 +41,20 @@ const CreateManga = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.coverImage) {
+      return alert('Vui lòng tải lên hoặc dán link ảnh bìa!');
+    }
+
     setLoading(true);
+    console.log('🚀 Đang gửi dữ liệu tạo truyện...');
     
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Bạn chưa đăng nhập. Vui lòng đăng nhập lại!');
+      }
+
       const res = await fetch('/api/manga', {
         method: 'POST',
         headers: { 
@@ -49,22 +63,32 @@ const CreateManga = () => {
         },
         body: JSON.stringify({
           title: formData.title,
-          otherTitle: formData.otherTitle || '',
+          otherTitle: formData.otherTitle,
           description: formData.description,
-          author: formData.author || 'Đang cập nhật',
+          author: formData.author,
           cover: formData.coverImage,
           genres: formData.genres,
           type: storyType === 'manga' ? 'Manhwa' : 'Novel'
         })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Lỗi khi tạo truyện');
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error('Server gặp lỗi hệ thống (Phản hồi không phải JSON)');
+      }
 
-      alert(`Đã tạo thành công: ${data.title}`);
+      if (!res.ok) {
+        throw new Error(data.message || `Lỗi từ Server: ${res.status}`);
+      }
+
+      console.log('✅ Tạo truyện thành công:', data);
+      alert(`Đã tạo thành công tác phẩm: ${data.title}`);
       navigate('/dashboard');
     } catch (err) {
-      alert(err.message);
+      console.error('❌ Lỗi khi tạo truyện:', err);
+      alert('LỖI: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -178,7 +202,7 @@ const CreateManga = () => {
 
                 <div className="info-side">
                   <div className="input-group-hub">
-                    <label>Tên truyện</label>
+                    <label>Tên truyện *</label>
                     <input 
                       type="text" 
                       placeholder="Nhập tên truyện..."
@@ -199,7 +223,7 @@ const CreateManga = () => {
                       />
                     </div>
                     <div className="input-group-hub">
-                      <label>Thể loại</label>
+                      <label>Thể loại *</label>
                       <input 
                         type="text" 
                         placeholder="Hành động, Tình cảm..."
@@ -232,7 +256,7 @@ const CreateManga = () => {
               <div className="form-footer-hub">
                 <button type="submit" className="btn-create-vibrant" disabled={loading}>
                   {loading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
-                  {loading ? 'Đang tạo...' : `Tạo ${storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}`}
+                  <span>{loading ? 'Đang tạo...' : `Tạo ${storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}`}</span>
                 </button>
               </div>
             </form>
@@ -278,6 +302,9 @@ const CreateManga = () => {
         .manga-notice { padding: 1rem; background: var(--primary-light); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-md); display: flex; gap: 1rem; color: var(--primary); font-weight: 500; font-size: 0.9rem; }
         .form-footer-hub { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
         .btn-create-vibrant { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 1rem 3rem; border-radius: var(--radius-lg); font-weight: 800; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3); }
+        .btn-create-vibrant:disabled { opacity: 0.7; cursor: not-allowed; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         @media (max-width: 900px) {
           .hub-grid { grid-template-columns: 1fr; }
