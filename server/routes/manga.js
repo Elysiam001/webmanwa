@@ -53,14 +53,17 @@ router.post('/', auth, async (req, res) => {
 // @desc    Lấy tất cả truyện (cho trang chủ)
 router.get('/', async (req, res) => {
   try {
-    // Lấy truyện kèm theo thông tin chương mới nhất
     const mangas = await Manga.find().sort({ createdAt: -1 }).limit(20).lean();
     
-    // Bổ sung số lượng chương cho mỗi truyện
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
       const lastChapter = await Chapter.findOne({ mangaId: manga._id }).sort({ number: -1 });
-      return { ...manga, chapterCount, lastChapter };
+      return { 
+        ...manga, 
+        uploader: manga.uploader ? manga.uploader.toString() : null,
+        chapterCount, 
+        lastChapter 
+      };
     }));
 
     res.json(mangasWithChapters);
@@ -78,7 +81,11 @@ router.get('/:id', async (req, res) => {
     if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
 
     const chapters = await Chapter.find({ mangaId: req.params.id }).sort({ number: -1 });
-    res.json({ ...manga, chapters });
+    res.json({ 
+      ...manga, 
+      uploader: manga.uploader ? manga.uploader.toString() : null,
+      chapters 
+    });
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') return res.status(404).json({ message: 'Không tìm thấy truyện' });
@@ -92,13 +99,17 @@ router.get('/user', auth, async (req, res) => {
   try {
     console.log('🔍 Đang tìm truyện của User ID:', req.user.id);
     const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 }).lean();
-    console.log(`📊 Tìm thấy ${mangas.length} bộ truyện cho user này.`);
     
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
-      return { ...manga, chapterCount };
+      return { 
+        ...manga, 
+        uploader: manga.uploader ? manga.uploader.toString() : null,
+        chapterCount 
+      };
     }));
 
+    console.log(`📊 Tìm thấy ${mangasWithChapters.length} bộ truyện hợp lệ.`);
     res.json(mangasWithChapters);
   } catch (err) {
     console.error(err.message);
