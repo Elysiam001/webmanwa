@@ -48,13 +48,11 @@ const Navbar = () => {
           <span className="logo-text">Manhwa<span className="gradient-text">Hub</span></span>
         </Link>
 
-        {/* Desktop Links */}
+        {/* Desktop Links - Main Nav */}
         <div className="nav-links desktop-only">
           <Link to="/" className="nav-link active">Trang chủ</Link>
           <Link to="/genres" className="nav-link">Thể loại</Link>
           <Link to="/ranking" className="nav-link">Xếp hạng</Link>
-          <Link to="/history" className="nav-link">Lịch sử</Link>
-          <Link to="/follow" className="nav-link">Theo dõi</Link>
         </div>
 
         <div className="nav-actions">
@@ -81,6 +79,7 @@ const Navbar = () => {
                 />
               </div>
 
+              {/* User Dropdown (DESKTOP - NOW SYNCED WITH MOBILE SIDEBAR) */}
               <AnimatePresence>
                 {isUserMenuOpen && (
                   <motion.div 
@@ -102,25 +101,32 @@ const Navbar = () => {
                         </div>
                       </div>
                     </div>
+                    
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-items">
+                    
+                    <div className="dropdown-body">
+                      <p className="menu-label">Cá nhân</p>
                       <Link to="/profile" className="dropdown-item" onClick={closeAllMenus}>
                         <User size={18} /> Thông tin cá nhân
                       </Link>
+                      <Link to="/settings" className="dropdown-item" onClick={closeAllMenus}>
+                        <Settings size={18} /> Cài đặt
+                      </Link>
+
+                      <p className="menu-label">Thư viện của bạn</p>
                       <Link to="/history" className="dropdown-item" onClick={closeAllMenus}>
                         <History size={18} /> Lịch sử đọc
                       </Link>
                       <Link to="/follow" className="dropdown-item" onClick={closeAllMenus}>
-                        <Heart size={18} /> Truyện đang theo dõi
+                        <Heart size={18} /> Đang theo dõi
                       </Link>
                       <Link to="/stats" className="dropdown-item" onClick={closeAllMenus}>
                         <Layers size={18} /> Thế lực
                       </Link>
+
+                      <p className="menu-label">Quản lý & Hỗ trợ</p>
                       <Link to="/donate" className="dropdown-item donate-item" onClick={closeAllMenus}>
                         <CreditCard size={18} /> Donate ủng hộ
-                      </Link>
-                      <Link to="/settings" className="dropdown-item" onClick={closeAllMenus}>
-                        <Settings size={18} /> Cài đặt
                       </Link>
                       
                       <div className="dropdown-divider"></div>
@@ -137,7 +143,10 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <Link to="/login" className="login-btn-new desktop-only">Đăng nhập</Link>
+            <div className="auth-btns desktop-only">
+               <Link to="/login" className="login-btn-new">Đăng nhập</Link>
+               <Link to="/register" className="register-btn-outline">Đăng ký</Link>
+            </div>
           )}
 
           <button 
@@ -149,6 +158,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* MOBILE SIDEBAR (ALREADY HAS COMPLETE STRUCTURE) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -204,11 +214,11 @@ const Navbar = () => {
                 <p className="sidebar-label">Thư viện của bạn</p>
                 <Link to="/history" className="sidebar-link" onClick={closeAllMenus}><History size={20} /> Lịch sử đọc</Link>
                 <Link to="/follow" className="sidebar-link" onClick={closeAllMenus}><Heart size={20} /> Đang theo dõi</Link>
-                <Link to="/bookmarks" className="sidebar-link" onClick={closeAllMenus}><Bookmark size={20} /> Đánh dấu</Link>
+                <Link to="/stats" className="sidebar-link" onClick={closeAllMenus}><Layers size={20} /> Thế lực</Link>
 
                 {user && (
                   <>
-                    <p className="sidebar-label">Quản lý</p>
+                    <p className="sidebar-label">Quản lý & Hỗ trợ</p>
                     <Link to="/create-manga" className="sidebar-link create-highlight" onClick={closeAllMenus}><PlusCircle size={20} /> Đăng truyện mới</Link>
                     <Link to="/donate" className="sidebar-link" onClick={closeAllMenus}><CreditCard size={20} /> Donate ủng hộ</Link>
                     <button onClick={logout} className="sidebar-link logout-btn-mobile"><Power size={20} /> Đăng xuất</button>
@@ -230,37 +240,45 @@ const Navbar = () => {
         .nav-link { font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; }
         .nav-link.active { color: var(--primary); }
         .nav-actions { display: flex; align-items: center; gap: 1rem; }
-        .search-bar { background: white; border: 1px solid var(--border); border-radius: var(--radius-full); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; width: 180px; }
+        .search-bar { background: white; border: 1px solid var(--border); border-radius: var(--radius-full); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; width: 220px; }
         .search-bar input { background: none; border: none; width: 100%; outline: none; font-size: 0.85rem; }
+        
+        .auth-btns { display: flex; gap: 0.75rem; }
         .login-btn-new { background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; }
+        .register-btn-outline { border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; }
+
         .user-section { display: flex; align-items: center; gap: 0.75rem; position: relative; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; }
-        .glass-card { background: white; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: var(--radius-lg); overflow: hidden; }
-        .user-dropdown { position: absolute; top: calc(100% + 15px); right: 0; width: 240px; z-index: 1001; }
-        .user-profile-header { padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-        .dropdown-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .username-display { font-weight: 700; color: var(--text-primary); }
-        .user-role { font-size: 0.75rem; color: var(--text-secondary); }
-        .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; color: var(--text-secondary); border-radius: var(--radius-md); font-weight: 600; font-size: 0.85rem; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
+        .user-avatar:hover { border-color: var(--primary); }
+
+        .glass-card { background: white; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: var(--radius-lg); overflow: hidden; }
+        .user-dropdown { position: absolute; top: calc(100% + 15px); right: 0; width: 280px; z-index: 1001; }
+        .dropdown-header { padding: 1.25rem; background: #f8fafc; }
+        .user-profile-header { display: flex; align-items: center; gap: 1rem; }
+        .dropdown-avatar { width: 48px; height: 48px; border-radius: 50%; }
+        .username-display { font-weight: 800; color: var(--text-primary); font-size: 1rem; }
+        .user-role { font-size: 0.8rem; color: var(--text-secondary); }
+        
+        .dropdown-body { padding: 1rem; }
+        .menu-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.5rem 0.5rem; }
+        .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-secondary); border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; }
         .dropdown-item:hover { background: var(--primary-light); color: var(--primary); }
         .dropdown-item.create-btn { background: var(--primary); color: white; margin-top: 0.5rem; }
-        .dropdown-item.logout { color: #f43f5e; }
-        
+        .dropdown-item.logout { color: #f43f5e; border-top: 1px solid var(--border); border-radius: 0; margin-top: 0.5rem; }
+        .donate-item { color: #0ea5e9; }
+
         .mobile-only { display: none; }
         .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 2000; }
-        .mobile-sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 85%; max-width: 320px; background: white; z-index: 2001; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+        .mobile-sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 85%; max-width: 320px; background: white; z-index: 2001; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
         .sidebar-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .sidebar-user-info { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-body); border-radius: var(--radius-lg); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: #f8fafc; border-radius: var(--radius-lg); }
         .sidebar-avatar { width: 50px; height: 50px; border-radius: 50%; }
-        .sidebar-auth-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .btn-sidebar-primary { background: var(--primary); color: white; text-align: center; padding: 0.75rem; border-radius: var(--radius-md); font-weight: 700; }
-        .btn-sidebar-outline { border: 2px solid var(--border); color: var(--text-primary); text-align: center; padding: 0.75rem; border-radius: var(--radius-md); font-weight: 700; }
         .sidebar-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 1.5rem 0 0.75rem; }
-        .sidebar-link { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; color: var(--text-secondary); font-weight: 600; border-radius: var(--radius-md); }
+        .sidebar-link { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem; color: var(--text-secondary); font-weight: 600; border-radius: var(--radius-md); }
         .sidebar-link svg { color: var(--text-muted); }
         .sidebar-link.active { background: var(--primary-light); color: var(--primary); }
         .create-highlight { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white !important; }
-        .logout-btn-mobile { width: 100%; color: #f43f5e; }
+        .logout-btn-mobile { width: 100%; color: #f43f5e; border-top: 1px solid var(--border); border-radius: 0; margin-top: 1rem; }
 
         @media (max-width: 1024px) {
           .desktop-only { display: none; }
