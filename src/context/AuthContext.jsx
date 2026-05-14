@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Kiểm tra xem đã có token trong localStorage chưa
-    const storedUser = localStorage.getItem('manhwahub_user');
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -17,14 +17,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData, token) => {
     setUser(userData);
-    localStorage.setItem('manhwahub_token', token);
-    localStorage.setItem('manhwahub_user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('manhwahub_token');
-    localStorage.removeItem('manhwahub_user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   return (
