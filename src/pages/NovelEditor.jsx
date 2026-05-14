@@ -1,107 +1,167 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Save, Eye, ChevronLeft, Type, Image as ImageIcon, Bold, Italic, List, AlignLeft, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Save, ChevronLeft, Loader2, Book, FileText, Type, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const NovelEditor = () => {
+  const { token } = useAuth();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [content, setContent] = useState("");
+  const [chapterInfo, setChapterInfo] = useState({ number: '', title: '', content: '' });
+  const [loading, setLoading] = useState(false);
+  const [manga, setManga] = useState(null);
+
+  useEffect(() => {
+    const fetchManga = async () => {
+      try {
+        const res = await fetch(`/api/manga/${id}`);
+        const data = await res.json();
+        if (res.ok) setManga(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchManga();
+  }, [id]);
+
+  const handleSave = async () => {
+    if (!chapterInfo.number) return alert('Vui lòng nhập số chương!');
+    if (!chapterInfo.content.trim()) return alert('Vui lòng nhập nội dung chương!');
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/manga/${id}/chapters`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          number: chapterInfo.number,
+          title: chapterInfo.title,
+          content: chapterInfo.content
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Lỗi khi đăng chương');
+
+      alert(`Đã đăng thành công chương ${chapterInfo.number}!`);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="novel-editor-page container">
-      <header className="page-header">
-        <button onClick={() => navigate(-1)} className="back-link">
-          <ChevronLeft size={20} /> Quay lại quản lý truyện
-        </button>
-        <h1 className="page-title">Viết chương tiểu thuyết</h1>
-      </header>
-
-      <div className="editor-grid">
-        <div className="main-editor glass">
-          <div className="editor-info-header">
-            <input type="text" className="chapter-title-input" placeholder="Nhập tiêu đề chương..." />
-            <div className="chapter-meta-inputs">
-              <span>Chương số:</span>
-              <input type="number" className="chapter-num-input" placeholder="1" />
+    <div className="novel-editor-page">
+      <div className="container">
+        <header className="editor-header">
+          <div className="header-left">
+            <button onClick={() => navigate('/dashboard')} className="back-btn-dash">
+              <ChevronLeft size={20} /> Quay lại
+            </button>
+            <div className="header-titles">
+              <h1>Soạn thảo Tiểu thuyết</h1>
+              <p>Tác phẩm: <span className="highlight">{manga?.title || 'Đang tải...'}</span></p>
             </div>
           </div>
+          <div className="header-right">
+            <button 
+              className="btn-save-novel" 
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+              <span>{loading ? 'Đang lưu...' : 'Đăng chương'}</span>
+            </button>
+          </div>
+        </header>
 
-          <div className="rich-text-toolbar glass">
-            <button className="tool-btn"><Bold size={18} /></button>
-            <button className="tool-btn"><Italic size={18} /></button>
-            <button className="tool-btn"><List size={18} /></button>
-            <button className="tool-btn"><AlignLeft size={18} /></button>
-            <div className="tool-divider"></div>
-            <button className="tool-btn"><ImageIcon size={18} /></button>
-            <button className="tool-btn"><Type size={18} /></button>
+        <div className="editor-layout">
+          <div className="editor-main-side">
+            <section className="info-bar glass-card">
+              <div className="input-group-editor">
+                <label><Type size={16} /> Chương số</label>
+                <input 
+                  type="number" 
+                  placeholder="Ví dụ: 1" 
+                  value={chapterInfo.number}
+                  onChange={(e) => setChapterInfo({...chapterInfo, number: e.target.value})}
+                />
+              </div>
+              <div className="input-group-editor flex-1">
+                <label><FileText size={16} /> Tiêu đề chương</label>
+                <input 
+                  type="text" 
+                  placeholder="Tên chương (ví dụ: Khởi đầu mới...)" 
+                  value={chapterInfo.title}
+                  onChange={(e) => setChapterInfo({...chapterInfo, title: e.target.value})}
+                />
+              </div>
+            </section>
+
+            <section className="text-editor-container glass-card">
+              <textarea 
+                placeholder="Bắt đầu viết câu chuyện của bạn tại đây..."
+                value={chapterInfo.content}
+                onChange={(e) => setChapterInfo({...chapterInfo, content: e.target.value})}
+              ></textarea>
+              <div className="editor-footer">
+                <span>Số từ: {chapterInfo.content.trim().split(/\s+/).filter(w => w !== '').length}</span>
+              </div>
+            </section>
           </div>
 
-          <textarea 
-            className="editor-textarea" 
-            placeholder="Bắt đầu viết câu chuyện của bạn ở đây..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          ></textarea>
-
-          <div className="editor-footer">
-            <span className="word-count">{content.split(/\s+/).filter(x => x).length} từ</span>
-            <div className="editor-actions">
-              <button className="draft-btn glass"><Save size={18} /> Lưu nháp</button>
-              <button className="publish-btn"><Send size={18} /> Đăng công khai</button>
+          <aside className="editor-side">
+            <div className="tip-card glass-card">
+              <h4><Info size={18} /> Mẹo soạn thảo</h4>
+              <ul className="tip-list">
+                <li><strong>Phân đoạn:</strong> Nên ngắt đoạn thường xuyên để người đọc dễ theo dõi trên điện thoại.</li>
+                <li><strong>Trình bày:</strong> Sử dụng các dấu ngắt để phân chia các cảnh khác nhau.</li>
+                <li><strong>Lưu trữ:</strong> Hệ thống chưa có tự động lưu nháp, hãy đảm bảo bạn lưu thường xuyên.</li>
+              </ul>
             </div>
-          </div>
+          </aside>
         </div>
-
-        <aside className="editor-sidebar">
-          <div className="info-card glass">
-            <h4>Cài đặt chương</h4>
-            <div className="form-group">
-              <label>Ghi chú của tác giả</label>
-              <textarea placeholder="Ghi chú xuất hiện ở cuối chương..."></textarea>
-            </div>
-            <div className="form-group">
-              <label>Hẹn giờ đăng</label>
-              <input type="datetime-local" className="glass" />
-            </div>
-          </div>
-        </aside>
       </div>
 
       <style jsx="true">{`
-        .novel-editor-page { padding: 120px 2rem 5rem; }
-        .page-header { margin-bottom: 2.5rem; }
-        .back-link { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); margin-bottom: 1rem; font-weight: 500; }
-        .page-title { font-size: 2.5rem; font-weight: 800; }
-
-        .editor-grid { display: grid; grid-template-columns: 1fr 350px; gap: 2.5rem; align-items: start; }
-        .main-editor { padding: 0; border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; min-height: 700px; }
-
-        .editor-info-header { padding: 2rem; background: rgba(255, 255, 255, 0.02); display: flex; flex-direction: column; gap: 1rem; }
-        .chapter-title-input { font-size: 2rem; font-weight: 700; background: none; border: none; outline: none; color: white; width: 100%; }
-        .chapter-meta-inputs { display: flex; align-items: center; gap: 1rem; color: var(--text-secondary); font-size: 0.9rem; }
-        .chapter-num-input { width: 60px; background: var(--bg-surface-elevated); border: 1px solid var(--border); padding: 0.4rem; border-radius: var(--radius-sm); color: white; text-align: center; }
-
-        .rich-text-toolbar { margin: 0 2rem; padding: 0.75rem 1.25rem; display: flex; gap: 0.75rem; align-items: center; border-radius: var(--radius-md); }
-        .tool-btn { color: var(--text-secondary); padding: 0.5rem; border-radius: var(--radius-sm); }
-        .tool-btn:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
-        .tool-divider { width: 1px; height: 24px; background: var(--border); margin: 0 0.5rem; }
-
-        .editor-textarea { flex: 1; background: none; border: none; outline: none; color: var(--text-primary); padding: 2rem; font-size: 1.2rem; line-height: 1.8; resize: none; min-height: 500px; font-family: 'Inter', sans-serif; }
-
-        .editor-footer { padding: 1.5rem 2rem; background: rgba(255, 255, 255, 0.02); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); }
-        .word-count { color: var(--text-muted); font-size: 0.9rem; }
-        .editor-actions { display: flex; gap: 1rem; }
-        .draft-btn { padding: 0.75rem 1.5rem; border-radius: var(--radius-md); color: white; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-        .publish-btn { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
-
-        .editor-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
-        .info-card { padding: 2rem; border-radius: var(--radius-lg); }
-        .info-card h4 { margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        .form-group label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
-        .form-group textarea { background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); color: white; padding: 1rem; outline: none; min-height: 120px; }
+        .novel-editor-page { padding: 120px 0 60px; background: #f1f5f9; min-height: 100vh; }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .back-btn-dash { background: white; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); }
+        .header-titles h1 { font-size: 2rem; font-weight: 800; }
+        .header-titles p { color: var(--text-secondary); }
+        .highlight { color: var(--primary); font-weight: 700; }
+        .btn-save-novel { background: var(--primary); color: white; padding: 0.85rem 2rem; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
+        
+        .editor-layout { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+        .info-bar { display: flex; gap: 2rem; padding: 1.5rem 2rem; margin-bottom: 1.5rem; align-items: center; }
+        .input-group-editor { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group-editor label { font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+        .input-group-editor input { background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 10px; font-weight: 600; outline: none; }
+        .flex-1 { flex: 1; }
+        
+        .text-editor-container { padding: 0; min-height: 600px; display: flex; flex-direction: column; }
+        .text-editor-container textarea { flex: 1; padding: 3rem; border: none; outline: none; font-size: 1.2rem; line-height: 1.8; font-family: 'Inter', sans-serif; resize: none; background: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+        .editor-footer { padding: 1rem 2rem; background: #f8fafc; border-top: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+        
+        .tip-card { padding: 1.5rem; }
+        .tip-card h4 { display: flex; align-items: center; gap: 0.5rem; font-weight: 800; margin-bottom: 1.25rem; }
+        .tip-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        .tip-list li { font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); }
+        
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         @media (max-width: 1024px) {
-          .editor-grid { grid-template-columns: 1fr; }
+          .editor-layout { grid-template-columns: 1fr; }
+          .editor-side { display: none; }
+          .info-bar { flex-direction: column; align-items: stretch; }
         }
       `}</style>
     </div>

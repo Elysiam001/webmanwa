@@ -80,13 +80,14 @@ router.post('/:id/chapters', auth, async (req, res) => {
       return res.status(401).json({ message: 'Quyền truy cập bị từ chối' });
     }
 
-    const { number, title, images } = req.body;
+    const { number, title, images, content } = req.body;
 
     const newChapter = new Chapter({
       mangaId: req.params.id,
       number,
       title,
-      images
+      images,
+      content
     });
 
     await newChapter.save();

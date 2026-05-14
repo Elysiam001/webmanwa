@@ -180,9 +180,15 @@ const Dashboard = () => {
                       <td><span className="status-tag-dash">{m.status}</span></td>
                       <td>
                         <div className="table-actions">
-                          <Link to={`/dashboard/add-chapter/${m._id}`} className="action-btn-add" title="Thêm chương mới">
-                            <Plus size={18} /> Thêm vào
-                          </Link>
+                          {m.type === 'Novel' ? (
+                            <Link to={`/dashboard/novel-editor/${m._id}`} className="action-btn-add novel" title="Viết chương mới">
+                              <Plus size={18} /> Viết chương
+                            </Link>
+                          ) : (
+                            <Link to={`/dashboard/add-chapter/${m._id}`} className="action-btn-add" title="Thêm chương mới">
+                              <Plus size={18} /> Thêm vào
+                            </Link>
+                          )}
                           <button onClick={() => setEditingManga(m)} className="action-btn-icon" title="Chỉnh sửa"><Edit size={18} /></button>
                           <button onClick={() => handleDelete(m._id, m.title)} className="action-btn-icon delete" title="Xóa"><Trash2 size={18} /></button>
                         </div>

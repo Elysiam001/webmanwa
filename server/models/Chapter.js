@@ -5,6 +5,7 @@ const ChapterSchema = new mongoose.Schema({
   number: { type: Number, required: true },
   title: String,
   images: [String], // Lưu Base64 hoặc URL ảnh
+  content: String, // Lưu nội dung văn bản tiểu thuyết
   views: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });

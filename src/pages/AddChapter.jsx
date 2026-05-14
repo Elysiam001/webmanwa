@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Upload, X, Grid, List, Eye, Save, ChevronLeft, Move, Loader2 } from 'lucide-react';
+import { Upload, X, Grid, List, Eye, Save, ChevronLeft, Move, Loader2, Book, Plus } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
