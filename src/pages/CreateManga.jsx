@@ -30,10 +30,16 @@ const CreateManga = () => {
       if (!token) return;
       try {
         const res = await fetch('/api/manga/user', {
-          headers: { 'x-auth-token': token }
+          headers: { 'x-auth-token': token },
+          cache: 'no-store' // Ép trình duyệt không dùng cache cũ
         });
         const data = await res.json();
-        if (res.ok) setMyManga(data);
+        console.log('--- DEBUG FRONTEND ---');
+        console.log('Mã ID Server nhận được:', data.debug?.serverReceivedId);
+        
+        if (res.ok) {
+          setMyManga(data.mangas || []);
+        }
       } catch (err) {
         console.error('Lỗi tải truyện:', err);
       } finally {

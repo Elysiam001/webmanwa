@@ -24,11 +24,12 @@ const Dashboard = () => {
     try {
       if (!token) return;
       const res = await fetch('/api/manga/user', {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
+        cache: 'no-store'
       });
       const data = await res.json();
       if (res.ok) {
-        setMyManga(data);
+        setMyManga(data.mangas || []);
       }
     } catch (err) {
       console.error('Lỗi tải danh sách truyện:', err);

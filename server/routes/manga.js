@@ -104,9 +104,13 @@ router.get('/:id', async (req, res) => {
 // @desc    Lấy danh sách truyện của người dùng hiện tại
 router.get('/user', auth, async (req, res) => {
   try {
-    console.log('🔍 Đang tìm truyện của User ID:', req.user.id);
+    console.log('--- DEBUG GET /USER ---');
+    console.log('User ID từ Token:', req.user.id);
+    
     const userObjectId = new mongoose.Types.ObjectId(req.user.id);
     const mangas = await Manga.find({ uploader: userObjectId }).sort({ createdAt: -1 }).lean();
+    
+    console.log(`📊 Kết quả: Tìm thấy ${mangas.length} bộ truyện.`);
     
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
@@ -117,10 +121,16 @@ router.get('/user', auth, async (req, res) => {
       };
     }));
 
-    console.log(`📊 Tìm thấy ${mangasWithChapters.length} bộ truyện hợp lệ.`);
-    res.json(mangasWithChapters);
+    // Gửi thêm thông tin debug về cho Frontend
+    res.json({
+      mangas: mangasWithChapters,
+      debug: {
+        serverReceivedId: req.user.id,
+        count: mangasWithChapters.length
+      }
+    });
   } catch (err) {
-    console.error(err.message);
+    console.error('LỖI TRUY VẤN:', err.message);
     res.status(500).send('Server Error');
   }
 });
