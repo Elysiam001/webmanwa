@@ -85,7 +85,7 @@ const Navbar = () => {
         </Link>
         
         <Link to="/create-manga" className="dropdown-item create-btn-sync" onClick={closeAllMenus}>
-          <PlusCircle size={18} /> Đăng ký mới
+          <PlusCircle size={18} /> Tác phẩm mới
         </Link>
         
         <div className="dropdown-divider"></div>
