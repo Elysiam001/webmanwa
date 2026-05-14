@@ -84,6 +84,10 @@ const Navbar = () => {
           <CreditCard size={18} /> Ủng hộ
         </Link>
         
+        <Link to="/dashboard" className="dropdown-item dashboard-item-sync" onClick={closeAllMenus}>
+          <Layers size={18} /> Quản lý truyện
+        </Link>
+
         <Link to="/create-manga" className="dropdown-item create-btn-sync" onClick={closeAllMenus}>
           <PlusCircle size={18} /> Tác phẩm mới
         </Link>
