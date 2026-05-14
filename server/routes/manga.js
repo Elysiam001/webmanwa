@@ -100,6 +100,56 @@ router.post('/:id/chapters', auth, async (req, res) => {
   }
 });
 
+// @route   PUT api/manga/:id
+// @desc    Cập nhật thông tin truyện
+router.put('/:id', auth, async (req, res) => {
+  try {
+    let manga = await Manga.findById(req.params.id);
+    if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
+
+    if (manga.uploader.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Quyền truy cập bị từ chối' });
+    }
+
+    const { title, otherTitle, description, author, cover, genres, type, status } = req.body;
+    
+    const updatedData = {
+      title, otherTitle, description, author, cover, type, status,
+      genres: Array.isArray(genres) ? genres : (genres || '').split(',').map(g => g.trim()).filter(g => g !== '')
+    };
+
+    manga = await Manga.findByIdAndUpdate(req.params.id, { $set: updatedData }, { new: true });
+    res.json(manga);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   DELETE api/manga/:id
+// @desc    Xóa truyện và các chương liên quan
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const manga = await Manga.findById(req.params.id);
+    if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
+
+    if (manga.uploader.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Quyền truy cập bị từ chối' });
+    }
+
+    // Xóa tất cả chương của truyện này
+    await Chapter.deleteMany({ mangaId: req.params.id });
+    
+    // Xóa truyện
+    await Manga.findByIdAndDelete(req.params.id);
+    
+    res.json({ message: 'Đã xóa truyện thành công' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   GET api/manga/:id
 // @desc    Lấy chi tiết truyện theo ID
 router.get('/:id', async (req, res) => {
