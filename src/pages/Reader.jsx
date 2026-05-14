@@ -163,7 +163,27 @@ const Reader = () => {
 
       <style jsx="true">{`
         .reader-page { background: #0a0a0a; min-height: 100vh; padding-top: 80px; }
-        .reader-loading, .reader-error { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; gap: 1rem; }
+        .reader-loading, .reader-error { 
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center; 
+          background: #0a0a0a;
+          color: white; 
+          gap: 1.5rem;
+          z-index: 2000;
+        }
+        .reader-loading p {
+          font-size: 1.1rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          color: #94a3b8;
+        }
         .reader-nav-top { position: fixed; top: 0; left: 0; right: 0; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 1000; background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .nav-left, .nav-center, .nav-right { display: flex; align-items: center; gap: 1rem; }
         .back-btn { display: flex; align-items: center; gap: 0.5rem; color: #ccc; font-weight: 600; }

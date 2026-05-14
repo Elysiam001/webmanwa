@@ -138,7 +138,15 @@ const MangaDetail = () => {
       </div>
 
       <style jsx="true">{`
-        .loading-container, .error-container { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+        .loading-container, .error-container { 
+          min-height: 80vh; 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 1.5rem;
+          color: var(--text-secondary);
+        }
         .detail-page { padding-top: 0; }
         .detail-header { position: relative; padding: 140px 0 60px; overflow: hidden; }
         .header-bg { position: absolute; inset: 0; z-index: -1; }

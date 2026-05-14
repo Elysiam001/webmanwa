@@ -335,6 +335,16 @@ const Dashboard = () => {
         .action-btn-icon { color: var(--text-muted); padding: 0.5rem; border-radius: 8px; }
         .action-btn-icon:hover { background: #f1f5f9; color: var(--text-primary); }
         .action-btn-icon.delete:hover { color: #f43f5e; background: #fff1f2; }
+        .loading-state { 
+          padding: 5rem; 
+          text-align: center; 
+          font-weight: 700; 
+          color: var(--primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+        }
         .empty-manga { padding: 5rem; text-align: center; }
 
         /* MODAL STYLES */
