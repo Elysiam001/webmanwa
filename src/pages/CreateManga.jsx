@@ -174,10 +174,16 @@ const CreateManga = () => {
               <div className="section-divider">
                 <span>HOẶC TIẾP TỤC VỚI</span>
               </div>
-              <h2 className="section-title-hub">Tác phẩm của bạn</h2>
+              <div className="section-header-hub">
+                <h2 className="section-title-hub">Tác phẩm của bạn</h2>
+                {token && <span className="debug-id-badge">ID: {token.substring(token.length - 8)}</span>}
+              </div>
               
               {loadingManga ? (
-                <div className="loading-works">Đang tải danh sách tác phẩm...</div>
+                <div className="loading-works">
+                  <Loader2 className="animate-spin" size={24} />
+                  <span>Đang tải danh sách tác phẩm...</span>
+                </div>
               ) : myManga.length > 0 ? (
                 <div className="works-list-hub">
                   {myManga.map(m => (
@@ -195,7 +201,7 @@ const CreateManga = () => {
                 </div>
               ) : (
                 <div className="empty-works-hub">
-                  <p>Bạn chưa có tác phẩm nào. Hãy chọn một định dạng ở trên để bắt đầu!</p>
+                  <p>Bạn chưa có tác phẩm nào hiển thị ở đây. Hãy thử tạo truyện mới nhé!</p>
                 </div>
               )}
             </div>
@@ -360,9 +366,11 @@ const CreateManga = () => {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .my-works-section { margin-top: 5rem; text-align: left; }
+        .section-header-hub { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+        .debug-id-badge { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace; }
         .section-divider { display: flex; align-items: center; gap: 1rem; color: var(--text-muted); font-weight: 800; font-size: 0.75rem; margin-bottom: 2rem; }
         .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .section-title-hub { font-size: 1.75rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-primary); }
+        .section-title-hub { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin: 0; }
         .works-list-hub { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
         .work-item-hub { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 16px; transition: var(--transition); }
         .work-item-hub:hover { transform: translateY(-5px); border-color: var(--primary); }
@@ -372,7 +380,7 @@ const CreateManga = () => {
         .work-details p { font-size: 0.85rem; color: var(--text-secondary); }
         .btn-add-ch-hub { background: var(--primary-light); color: var(--primary); padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
         .btn-add-ch-hub:hover { background: var(--primary); color: white; }
-        .loading-works, .empty-works-hub { padding: 3rem; text-align: center; background: white; border-radius: 20px; border: 2px dashed var(--border); color: var(--text-muted); font-weight: 600; }
+        .loading-works, .empty-works-hub { padding: 3rem; text-align: center; background: white; border-radius: 20px; border: 2px dashed var(--border); color: var(--text-muted); font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 
         @media (max-width: 900px) {
           .hub-grid { grid-template-columns: 1fr; }
