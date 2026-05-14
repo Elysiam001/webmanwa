@@ -47,8 +47,8 @@ router.post('/login', async (req, res) => {
 
     // Tạo Token (Thẻ bài)
     const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
+      { user: { id: user._id, role: user.role } },
+      process.env.JWT_SECRET || 'manhwahub_secret',
       { expiresIn: '7d' }
     );
 
