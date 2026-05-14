@@ -182,7 +182,7 @@ const CreateManga = () => {
               </div>
               <div className="section-header-hub">
                 <h2 className="section-title-hub">Tác phẩm của bạn</h2>
-                {user && <span className="debug-id-badge">User ID: {user.id}</span>}
+                {user && <span className="debug-id-badge">ID người dùng: {user.id}</span>}
               </div>
               
               {loadingManga ? (
@@ -208,6 +208,16 @@ const CreateManga = () => {
               ) : (
                 <div className="empty-works-hub">
                   <p>Bạn chưa có tác phẩm nào hiển thị ở đây. Hãy thử tạo truyện mới nhé!</p>
+                  
+                  {/* BẢNG DEBUG CÔNG KHAI - CHỈ HIỆN KHI KHÔNG CÓ TRUYỆN */}
+                  <div className="public-debug-table">
+                    <h4>CÔNG CỤ KIỂM TRA HỆ THỐNG (TẠM THỜI)</h4>
+                    <p>Nếu bạn thấy truyện của mình hiện ở bảng dưới này mà không hiện ở trên, hãy báo cho tôi mã uploader của nó.</p>
+                    <iframe 
+                      src="/api/manga/debug/all" 
+                      style={{ width: '100%', height: '150px', border: '1px solid #ddd', borderRadius: '8px', background: '#f8f9fa', padding: '10px' }}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -387,6 +397,9 @@ const CreateManga = () => {
         .btn-add-ch-hub { background: var(--primary-light); color: var(--primary); padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
         .btn-add-ch-hub:hover { background: var(--primary); color: white; }
         .loading-works, .empty-works-hub { padding: 3rem; text-align: center; background: white; border-radius: 20px; border: 2px dashed var(--border); color: var(--text-muted); font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .public-debug-table { width: 100%; margin-top: 2rem; text-align: left; background: #fff; padding: 1.5rem; border-radius: 12px; border: 1px solid #fee2e2; }
+        .public-debug-table h4 { font-size: 0.8rem; color: #ef4444; margin-bottom: 0.5rem; letter-spacing: 1px; }
+        .public-debug-table p { font-size: 0.75rem; margin-bottom: 1rem; color: #64748b; }
 
         @media (max-width: 900px) {
           .hub-grid { grid-template-columns: 1fr; }
