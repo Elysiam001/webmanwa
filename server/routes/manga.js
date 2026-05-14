@@ -5,6 +5,22 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
+// @route   GET api/manga/debug/all
+// @desc    KIỂM TRA HỆ THỐNG (Debug)
+router.get('/debug/all', auth, async (req, res) => {
+  try {
+    const total = await Manga.countDocuments();
+    const all = await Manga.find().select('title uploader createdAt').limit(10);
+    res.json({
+      totalInDatabase: total,
+      yourIdInServer: req.user.id,
+      recentStories: all
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // @route   POST api/manga
 // @desc    Tạo bộ truyện mới
 router.post('/', auth, async (req, res) => {
