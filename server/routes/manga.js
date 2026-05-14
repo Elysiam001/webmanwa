@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import express from 'express';
 import Manga from '../models/Manga.js';
 import Chapter from '../models/Chapter.js';
@@ -6,35 +5,11 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// @route   GET api/manga/debug/all
-// @desc    KIỂM TRA HỆ THỐNG CÔNG KHAI
-router.get('/debug/all', async (req, res) => {
-  try {
-    const total = await Manga.countDocuments();
-    const all = await Manga.find().select('title uploader createdAt').sort({ createdAt: -1 }).limit(10).lean();
-    
-    // Chuẩn hóa dữ liệu uploader để nhìn cho rõ
-    const allMapped = all.map(m => ({
-      ...m,
-      uploader: m.uploader ? m.uploader.toString() : 'TRỐNG (MỒ CÔI)'
-    }));
-
-    res.json({
-      totalInDatabase: total,
-      recentStories: allMapped
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // @route   POST api/manga
 // @desc    Tạo bộ truyện mới
 router.post('/', auth, async (req, res) => {
   try {
     const { title, otherTitle, description, author, cover, genres, type } = req.body;
-
-    console.log('🚀 Đang tạo truyện mới cho User ID:', req.user.id);
 
     const newManga = new Manga({
       title,
@@ -44,11 +19,10 @@ router.post('/', auth, async (req, res) => {
       cover,
       genres: (genres || '').split(',').map(g => g.trim()).filter(g => g !== ''),
       type,
-      uploader: new mongoose.Types.ObjectId(req.user.id)
+      uploader: req.user.id
     });
 
     const manga = await newManga.save();
-    console.log('✅ Truyện đã được lưu vào DB với ID:', manga._id);
     res.json(manga);
   } catch (err) {
     console.error(err.message);
@@ -60,17 +34,14 @@ router.post('/', auth, async (req, res) => {
 // @desc    Lấy tất cả truyện (cho trang chủ)
 router.get('/', async (req, res) => {
   try {
+    // Lấy truyện kèm theo thông tin chương mới nhất
     const mangas = await Manga.find().sort({ createdAt: -1 }).limit(20).lean();
     
+    // Bổ sung số lượng chương cho mỗi truyện
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
       const lastChapter = await Chapter.findOne({ mangaId: manga._id }).sort({ number: -1 });
-      return { 
-        ...manga, 
-        uploader: manga.uploader ? manga.uploader.toString() : null,
-        chapterCount, 
-        lastChapter 
-      };
+      return { ...manga, chapterCount, lastChapter };
     }));
 
     res.json(mangasWithChapters);
@@ -80,67 +51,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET api/manga/:id
-// @desc    Lấy chi tiết một bộ truyện và danh sách chương
-router.get('/:id', async (req, res) => {
-  try {
-    const manga = await Manga.findById(req.params.id).lean();
-    if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
-
-    const chapters = await Chapter.find({ mangaId: req.params.id }).sort({ number: -1 });
-    res.json({ 
-      ...manga, 
-      uploader: manga.uploader ? manga.uploader.toString() : null,
-      chapters 
-    });
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') return res.status(404).json({ message: 'Không tìm thấy truyện' });
-    res.status(500).send('Server Error');
-  }
-});
-
 // @route   GET api/manga/user
 // @desc    Lấy danh sách truyện của người dùng hiện tại
 router.get('/user', auth, async (req, res) => {
   try {
-    console.log('--- DEBUG GET /USER (SUPER SEARCH) ---');
-    // Cắt bỏ mọi dấu cách thừa nếu có
-    const rawId = req.user.id.toString().trim();
-    console.log(`ID nguyên bản: "${rawId}"`);
-    
-    const userObjectId = mongoose.Types.ObjectId.isValid(rawId) 
-      ? new mongoose.Types.ObjectId(rawId) 
-      : null;
-
-    // Tìm kiếm bằng mọi giá: cả chuỗi và ObjectId
-    const mangas = await Manga.find({ 
-      $or: [
-        { uploader: rawId }, 
-        { uploader: userObjectId }
-      ] 
-    }).sort({ createdAt: -1 }).lean();
-    
-    console.log(`📊 Kết quả: Tìm thấy ${mangas.length} bộ truyện.`);
+    const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 }).lean();
     
     const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
       const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
-      return { 
-        ...manga, 
-        uploader: manga.uploader ? manga.uploader.toString() : null,
-        chapterCount 
-      };
+      return { ...manga, chapterCount };
     }));
 
-    res.json({
-      mangas: mangasWithChapters,
-      debug: {
-        serverReceivedId: rawId,
-        count: mangasWithChapters.length
-      }
-    });
+    res.json(mangasWithChapters);
   } catch (err) {
-    console.error('LỖI TRUY VẤN:', err.message);
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
@@ -176,27 +100,20 @@ router.post('/:id/chapters', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE api/manga/:id
-// @desc    Xóa bộ truyện và tất cả chương của nó
-router.delete('/:id', auth, async (req, res) => {
+// @route   GET api/manga/:id
+// @desc    Lấy chi tiết truyện theo ID
+router.get('/:id', async (req, res) => {
   try {
-    const manga = await Manga.findById(req.params.id);
+    const manga = await Manga.findById(req.params.id).lean();
     if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
 
-    // Kiểm tra quyền: Chỉ chủ sở hữu HOẶC nếu truyện không có chủ (mồ côi) mới được xóa
-    if (manga.uploader && manga.uploader.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Bạn không có quyền xóa truyện này' });
-    }
-
-    // Xóa tất cả chương của truyện này trước
-    await Chapter.deleteMany({ mangaId: req.params.id });
-    
-    // Xóa truyện
-    await Manga.findByIdAndDelete(req.params.id);
-
-    res.json({ message: 'Đã xóa truyện thành công' });
+    const chapters = await Chapter.find({ mangaId: req.params.id }).sort({ number: -1 });
+    res.json({ ...manga, chapters });
   } catch (err) {
     console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Không tìm thấy truyện' });
+    }
     res.status(500).send('Server Error');
   }
 });

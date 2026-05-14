@@ -11,25 +11,22 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('manga');
   const [myManga, setMyManga] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, token, logout, loading: authLoading } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading) {
-      fetchMyManga();
-    }
-  }, [authLoading, token]);
+    fetchMyManga();
+  }, []);
 
   const fetchMyManga = async () => {
     try {
       if (!token) return;
-      const res = await fetch(`/api/manga/user?token=${token}`, {
-        headers: { 'x-auth-token': token },
-        cache: 'no-store'
+      const res = await fetch('/api/manga/user', {
+        headers: { 'x-auth-token': token }
       });
       const data = await res.json();
       if (res.ok) {
-        setMyManga(data.mangas || []);
+        setMyManga(data);
       }
     } catch (err) {
       console.error('Lỗi tải danh sách truyện:', err);

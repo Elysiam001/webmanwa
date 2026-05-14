@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BookText, Image as ImageIcon, ArrowRight, ArrowLeft, 
   CheckCircle, Plus, Info, Sparkles, Loader2 
@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 const CreateManga = () => {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [step, setStep] = useState(1);
   const [storyType, setStoryType] = useState(null);
   const [formData, setFormData] = useState({
@@ -21,38 +21,6 @@ const CreateManga = () => {
   });
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  const [myManga, setMyManga] = useState([]);
-  const [loadingManga, setLoadingManga] = useState(true);
-  const [serverDebugId, setServerDebugId] = useState(null);
-
-  useEffect(() => {
-    const fetchMyManga = async () => {
-      if (!token) return;
-      try {
-        const res = await fetch(`/api/manga/user?token=${token}`, {
-          headers: { 'x-auth-token': token },
-          cache: 'no-store' 
-        });
-        const data = await res.json();
-        console.log('--- DEBUG FRONTEND ---');
-        console.log('Mã ID Server nhận được:', data.debug?.serverReceivedId);
-        
-        if (data.debug?.serverReceivedId) {
-          setServerDebugId(data.debug.serverReceivedId);
-        }
-
-        if (res.ok) {
-          setMyManga(data.mangas || []);
-        }
-      } catch (err) {
-        console.error('Lỗi tải truyện:', err);
-      } finally {
-        setLoadingManga(false);
-      }
-    };
-    fetchMyManga();
-  }, [token]);
 
   const handleTypeSelect = (type) => {
     setStoryType(type);
@@ -137,8 +105,8 @@ const CreateManga = () => {
             className="selection-hub"
           >
             <div className="hub-header">
-              <h1 className="hub-title">Trung tâm Sáng tác</h1>
-              <p className="hub-subtitle">Bắt đầu hành trình trở thành tác giả chuyên nghiệp</p>
+              <h1 className="hub-title">Bạn muốn đăng truyện gì?</h1>
+              <p className="hub-subtitle">Chọn định dạng phù hợp nhất với nội dung của bạn</p>
             </div>
 
             <div className="hub-grid">
@@ -178,56 +146,6 @@ const CreateManga = () => {
                   <ArrowRight size={20} />
                 </div>
               </motion.div>
-            </div>
-
-            {/* PHẦN TÁC PHẨM ĐÃ TẠO */}
-            <div className="my-works-section">
-              <div className="section-divider">
-                <span>HOẶC TIẾP TỤC VỚI</span>
-              </div>
-              <div className="section-header-hub">
-                <h2 className="section-title-hub">Tác phẩm của bạn</h2>
-                <div className="debug-badges">
-                  {user && <span className="debug-id-badge">ID trình duyệt: {user.id}</span>}
-                  {serverDebugId && <span className="debug-id-badge server">ID Server nhận: {serverDebugId}</span>}
-                </div>
-              </div>
-              
-              {loadingManga ? (
-                <div className="loading-works">
-                  <Loader2 className="animate-spin" size={24} />
-                  <span>Đang tải danh sách tác phẩm...</span>
-                </div>
-              ) : myManga.length > 0 ? (
-                <div className="works-list-hub">
-                  {myManga.map(m => (
-                    <div key={m._id} className="work-item-hub glass-card">
-                      <img src={m.cover} alt="" className="work-thumb" />
-                      <div className="work-details">
-                        <h3>{m.title}</h3>
-                        <p>{m.type} • {m.chapterCount || 0} chương</p>
-                      </div>
-                      <Link to={`/dashboard/add-chapter/${m._id}`} className="btn-add-ch-hub">
-                        <Plus size={16} /> Thêm chương
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-works-hub">
-                  <p>Bạn chưa có tác phẩm nào hiển thị ở đây. Hãy thử tạo truyện mới nhé!</p>
-                  
-                  {/* BẢNG DEBUG CÔNG KHAI - CHỈ HIỆN KHI KHÔNG CÓ TRUYỆN */}
-                  <div className="public-debug-table">
-                    <h4>CÔNG CỤ KIỂM TRA HỆ THỐNG (TẠM THỜI)</h4>
-                    <p>Nếu bạn thấy truyện của mình hiện ở bảng dưới này mà không hiện ở trên, hãy báo cho tôi mã uploader của nó.</p>
-                    <iframe 
-                      src="/api/manga/debug/all" 
-                      style={{ width: '100%', height: '150px', border: '1px solid #ddd', borderRadius: '8px', background: '#f8f9fa', padding: '10px' }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </motion.div>
         ) : (
@@ -389,33 +307,10 @@ const CreateManga = () => {
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .my-works-section { margin-top: 5rem; text-align: left; }
-        .section-header-hub { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
-        .debug-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .debug-id-badge { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace; }
-        .debug-id-badge.server { background: #ecfdf5; color: #059669; }
-        .section-divider { display: flex; align-items: center; gap: 1rem; color: var(--text-muted); font-weight: 800; font-size: 0.75rem; margin-bottom: 2rem; }
-        .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .section-title-hub { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin: 0; }
-        .works-list-hub { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-        .work-item-hub { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 16px; transition: var(--transition); }
-        .work-item-hub:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .work-thumb { width: 50px; height: 70px; object-fit: cover; border-radius: 8px; }
-        .work-details { flex: 1; }
-        .work-details h3 { font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem; }
-        .work-details p { font-size: 0.85rem; color: var(--text-secondary); }
-        .btn-add-ch-hub { background: var(--primary-light); color: var(--primary); padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
-        .btn-add-ch-hub:hover { background: var(--primary); color: white; }
-        .loading-works, .empty-works-hub { padding: 3rem; text-align: center; background: white; border-radius: 20px; border: 2px dashed var(--border); color: var(--text-muted); font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-        .public-debug-table { width: 100%; margin-top: 2rem; text-align: left; background: #fff; padding: 1.5rem; border-radius: 12px; border: 1px solid #fee2e2; }
-        .public-debug-table h4 { font-size: 0.8rem; color: #ef4444; margin-bottom: 0.5rem; letter-spacing: 1px; }
-        .public-debug-table p { font-size: 0.75rem; margin-bottom: 1rem; color: #64748b; }
-
         @media (max-width: 900px) {
           .hub-grid { grid-template-columns: 1fr; }
           .form-layout { grid-template-columns: 1fr; }
           .cover-upload-side { max-width: 320px; margin: 0 auto; }
-          .works-list-hub { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
