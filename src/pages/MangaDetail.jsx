@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Star, Play, Heart, Share2, List, Info, Clock, User, Tag, Loader2 } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Star, Play, Heart, Share2, List, Info, Clock, User, Tag, Loader2, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const MangaDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
   const [manga, setManga] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchMangaDetail = async () => {
@@ -89,6 +93,18 @@ const MangaDetail = () => {
               <button className="follow-btn glass">
                 <Heart size={20} /> Theo dõi
               </button>
+
+              {token && (!manga.uploader || (user && manga.uploader === user.id)) && (
+                <button 
+                  onClick={handleDelete} 
+                  className="delete-btn-detail"
+                  disabled={deleting}
+                >
+                  {deleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+                  <span>Xóa truyện</span>
+                </button>
+              )}
+
               <button className="share-btn glass">
                 <Share2 size={20} />
               </button>
@@ -162,6 +178,9 @@ const MangaDetail = () => {
         .read-now-btn { background: var(--primary); color: white; padding: 0.8rem 2rem; border-radius: var(--radius-md); font-weight: 700; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3); }
         .read-now-btn.disabled { opacity: 0.5; cursor: not-allowed; }
         .follow-btn, .share-btn { background: white; border: 1px solid var(--border); padding: 0.8rem 1.5rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+        .delete-btn-detail { background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; padding: 0.8rem 1.5rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem; font-weight: 700; transition: var(--transition); }
+        .delete-btn-detail:hover { background: #ef4444; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2); }
+        .delete-btn-detail:disabled { opacity: 0.5; cursor: not-allowed; }
         .detail-body { margin-top: 3rem; padding-bottom: 5rem; }
         .body-grid { display: grid; grid-template-columns: 1fr 320px; gap: 3rem; }
         .description { color: var(--text-secondary); line-height: 1.8; font-size: 1.05rem; margin-top: 1rem; }

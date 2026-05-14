@@ -121,4 +121,29 @@ router.post('/:id/chapters', auth, async (req, res) => {
   }
 });
 
+// @route   DELETE api/manga/:id
+// @desc    Xóa bộ truyện và tất cả chương của nó
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const manga = await Manga.findById(req.params.id);
+    if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
+
+    // Kiểm tra quyền: Chỉ chủ sở hữu HOẶC nếu truyện không có chủ (mồ côi) mới được xóa
+    if (manga.uploader && manga.uploader.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Bạn không có quyền xóa truyện này' });
+    }
+
+    // Xóa tất cả chương của truyện này trước
+    await Chapter.deleteMany({ mangaId: req.params.id });
+    
+    // Xóa truyện
+    await Manga.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Đã xóa truyện thành công' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 export default router;
