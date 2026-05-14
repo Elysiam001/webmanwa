@@ -107,10 +107,24 @@ const Navbar = () => {
                       <Link to="/profile" className="dropdown-item" onClick={closeAllMenus}>
                         <User size={18} /> Thông tin cá nhân
                       </Link>
+                      <Link to="/history" className="dropdown-item" onClick={closeAllMenus}>
+                        <History size={18} /> Lịch sử đọc
+                      </Link>
+                      <Link to="/follow" className="dropdown-item" onClick={closeAllMenus}>
+                        <Heart size={18} /> Truyện đang theo dõi
+                      </Link>
+                      <Link to="/stats" className="dropdown-item" onClick={closeAllMenus}>
+                        <Layers size={18} /> Thế lực
+                      </Link>
+                      <Link to="/donate" className="dropdown-item donate-item" onClick={closeAllMenus}>
+                        <CreditCard size={18} /> Donate ủng hộ
+                      </Link>
                       <Link to="/settings" className="dropdown-item" onClick={closeAllMenus}>
                         <Settings size={18} /> Cài đặt
                       </Link>
+                      
                       <div className="dropdown-divider"></div>
+                      
                       <Link to="/create-manga" className="dropdown-item create-btn" onClick={closeAllMenus}>
                         <PlusCircle size={18} /> Đăng truyện mới
                       </Link>
