@@ -5,8 +5,10 @@ import {
   CheckCircle, Plus, Info, Sparkles, Loader2 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const CreateManga = () => {
+  const { token } = useAuth();
   const [step, setStep] = useState(1);
   const [storyType, setStoryType] = useState(null);
   const [formData, setFormData] = useState({
@@ -50,7 +52,6 @@ const CreateManga = () => {
     console.log('🚀 Đang gửi dữ liệu tạo truyện...');
     
     try {
-      const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Bạn chưa đăng nhập. Vui lòng đăng nhập lại!');
       }

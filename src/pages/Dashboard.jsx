@@ -11,7 +11,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('manga');
   const [myManga, setMyManga] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const Dashboard = () => {
 
   const fetchMyManga = async () => {
     try {
-      const token = localStorage.getItem('token');
+      if (!token) return;
       const res = await fetch('/api/manga/user', {
         headers: { 'x-auth-token': token }
       });

@@ -4,35 +4,40 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Dọn dẹp phím cũ (nếu có)
+    // Dọn dẹp phím cũ nếu có
     localStorage.removeItem('manhwahub_token');
     localStorage.removeItem('manhwahub_user');
 
-    // Kiểm tra xem đã có token trong localStorage chưa
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('token');
+    
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
     setLoading(false);
   }, []);
 
-  const login = (userData, token) => {
+  const login = (userData, userToken) => {
     setUser(userData);
-    localStorage.setItem('token', token);
+    setToken(userToken);
+    localStorage.setItem('token', userToken);
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

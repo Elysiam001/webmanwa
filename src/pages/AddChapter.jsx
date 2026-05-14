@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Upload, X, Grid, List, Eye, Save, ChevronLeft, Move, Loader2 } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const AddChapter = () => {
+  const { token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
@@ -50,7 +52,6 @@ const AddChapter = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`/api/manga/${id}/chapters`, {
         method: 'POST',
         headers: { 
