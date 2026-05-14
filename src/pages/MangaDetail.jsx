@@ -29,6 +29,30 @@ const MangaDetail = () => {
     fetchMangaDetail();
   }, [id]);
 
+  const handleDelete = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bộ truyện này không? Tất cả các chương sẽ bị mất!')) return;
+    
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/manga/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-auth-token': token }
+      });
+      if (res.ok) {
+        alert('Đã xóa truyện thành công!');
+        navigate('/');
+      } else {
+        const data = await res.json();
+        alert('Lỗi: ' + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Không thể kết nối tới Server');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
