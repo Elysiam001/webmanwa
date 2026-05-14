@@ -6,15 +6,21 @@ import auth from '../middleware/auth.js';
 const router = express.Router();
 
 // @route   GET api/manga/debug/all
-// @desc    KIỂM TRA HỆ THỐNG (Debug)
-router.get('/debug/all', auth, async (req, res) => {
+// @desc    KIỂM TRA HỆ THỐNG CÔNG KHAI
+router.get('/debug/all', async (req, res) => {
   try {
     const total = await Manga.countDocuments();
-    const all = await Manga.find().select('title uploader createdAt').limit(10);
+    const all = await Manga.find().select('title uploader createdAt').sort({ createdAt: -1 }).limit(10).lean();
+    
+    // Chuẩn hóa dữ liệu uploader để nhìn cho rõ
+    const allMapped = all.map(m => ({
+      ...m,
+      uploader: m.uploader ? m.uploader.toString() : 'TRỐNG (MỒ CÔI)'
+    }));
+
     res.json({
       totalInDatabase: total,
-      yourIdInServer: req.user.id,
-      recentStories: all
+      recentStories: allMapped
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
