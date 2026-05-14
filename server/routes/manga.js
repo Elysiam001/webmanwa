@@ -101,6 +101,19 @@ router.post('/:id/chapters', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/manga/chapters/:chapterId
+// @desc    Lấy nội dung một chương cụ thể
+router.get('/chapters/:chapterId', async (req, res) => {
+  try {
+    const chapter = await Chapter.findById(req.params.chapterId);
+    if (!chapter) return res.status(404).json({ message: 'Không tìm thấy chương' });
+    res.json(chapter);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   PUT api/manga/:id
 // @desc    Cập nhật thông tin truyện
 router.put('/:id', auth, async (req, res) => {
