@@ -23,7 +23,7 @@ const Dashboard = () => {
   const fetchMyManga = async () => {
     try {
       if (!token) return;
-      const res = await fetch('/api/manga/user', {
+      const res = await fetch(`/api/manga/user?token=${token}`, {
         headers: { 'x-auth-token': token },
         cache: 'no-store'
       });

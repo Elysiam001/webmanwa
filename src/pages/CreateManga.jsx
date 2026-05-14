@@ -30,9 +30,9 @@ const CreateManga = () => {
     const fetchMyManga = async () => {
       if (!token) return;
       try {
-        const res = await fetch('/api/manga/user', {
+        const res = await fetch(`/api/manga/user?token=${token}`, {
           headers: { 'x-auth-token': token },
-          cache: 'no-store' // Ép trình duyệt không dùng cache cũ
+          cache: 'no-store' 
         });
         const data = await res.json();
         console.log('--- DEBUG FRONTEND ---');
