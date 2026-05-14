@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 const CreateManga = () => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [step, setStep] = useState(1);
   const [storyType, setStoryType] = useState(null);
   const [formData, setFormData] = useState({
