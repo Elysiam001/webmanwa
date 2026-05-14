@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, List, Settings, MessageSquare, Heart, Home, Maximize2, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, MessageSquare, Heart, Home, Loader2, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Reader = () => {
@@ -16,16 +16,16 @@ const Reader = () => {
     const fetchReaderData = async () => {
       setLoading(true);
       try {
-        // Fetch manga info for navigation
+        // 1. Fetch manga info for navigation
         const mangaRes = await fetch(`/api/manga/${id}`);
         const mangaData = await mangaRes.json();
         if (mangaRes.ok) setManga(mangaData);
 
-        // Fetch current chapter content
+        // 2. Fetch current chapter content
         const chapterRes = await fetch(`/api/manga/chapters/${chapterId}`);
         const chapterData = await chapterRes.json();
         if (chapterRes.ok) setChapter(chapterData);
-        else throw new Error(chapterData.message || 'Lỗi tải chương');
+        else throw new Error(chapterData.message || 'Lỗi tải nội dung');
         
       } catch (err) {
         setError(err.message);
@@ -42,7 +42,7 @@ const Reader = () => {
     const handleMouseMove = () => {
       setShowNav(true);
       clearTimeout(timeout);
-      timeout = setTimeout(() => setShowNav(false), 3000);
+      timeout = setTimeout(() => setShowNav(false), 4000);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
@@ -59,169 +59,173 @@ const Reader = () => {
   const prevChapter = currentIndex < manga?.chapters?.length - 1 ? manga.chapters[currentIndex + 1] : null;
   const nextChapter = currentIndex > 0 ? manga.chapters[currentIndex - 1] : null;
 
-  if (loading) return (
-    <div className="reader-loading">
-      <Loader2 className="animate-spin" size={40} />
-      <p>Đang tải nội dung...</p>
-    </div>
-  );
-
-  if (error || !chapter) return (
-    <div className="reader-error">
-      <h2>Lỗi tải chương</h2>
-      <p>{error}</p>
-      <Link to={`/manga/${id}`} className="btn-primary">Quay lại chi tiết</Link>
-    </div>
-  );
-
   return (
     <div className="reader-page">
+      {/* THANH ĐIỀU HƯỚNG - LUÔN HIỆN HOẶC HIỆN KHI DI CHUỘT */}
       <AnimatePresence>
         {showNav && (
-          <motion.div initial={{ y: -100 }} animate={{ y: 0 }} exit={{ y: -100 }} className="reader-nav-top glass">
+          <motion.nav 
+            initial={{ y: -70 }} 
+            animate={{ y: 0 }} 
+            exit={{ y: -70 }} 
+            className="reader-nav-top"
+          >
             <div className="nav-left">
-              <Link to={`/manga/${id}`} className="back-btn"><ChevronLeft /> {manga?.title || 'Quay lại'}</Link>
-              <div className="reader-info desktop-only">
-                <span className="chapter-name">Chương {chapter.number}</span>
-              </div>
-            </div>
-            
-            <div className="nav-center">
-              <button 
-                onClick={() => goToChapter(prevChapter?._id)} 
-                disabled={!prevChapter} 
-                className="nav-ch-btn"
-              ><ChevronLeft size={20} /></button>
-              
-              <select 
-                className="ch-select glass" 
-                value={chapterId}
-                onChange={(e) => goToChapter(e.target.value)}
-              >
-                {manga?.chapters?.map(ch => (
-                  <option key={ch._id} value={ch._id}>Chương {ch.number}: {ch.title || ''}</option>
-                ))}
-              </select>
-              
-              <button 
-                onClick={() => goToChapter(nextChapter?._id)} 
-                disabled={!nextChapter} 
-                className="nav-ch-btn"
-              ><ChevronRight size={20} /></button>
+              <button onClick={() => navigate(`/manga/${id}`)} className="back-btn">
+                <ChevronLeft size={24} /> <span className="desktop-only">Trở về</span>
+              </button>
+              {chapter && (
+                <div className="chapter-info-badge">
+                  Chương {chapter.number}
+                </div>
+              )}
             </div>
 
-            <div className="nav-right desktop-only">
-              <button className="icon-btn"><Settings size={20} /></button>
-              <button className="icon-btn" onClick={() => navigate('/')}><Home size={20} /></button>
+            <div className="nav-center">
+              <button onClick={() => goToChapter(prevChapter?._id)} disabled={!prevChapter} className="nav-ch-btn">
+                <ChevronLeft size={20} />
+              </button>
+              <select 
+                value={chapterId} 
+                onChange={(e) => goToChapter(e.target.value)}
+                className="ch-select"
+              >
+                {manga?.chapters?.map(ch => (
+                  <option key={ch._id} value={ch._id}>Chương {ch.number}</option>
+                ))}
+              </select>
+              <button onClick={() => goToChapter(nextChapter?._id)} disabled={!nextChapter} className="nav-ch-btn">
+                <ChevronRight size={20} />
+              </button>
             </div>
-          </motion.div>
+
+            <div className="nav-right">
+              <button className="icon-btn" onClick={() => navigate('/')}><Home size={20} /></button>
+              <button className="icon-btn desktop-only"><Settings size={20} /></button>
+            </div>
+          </motion.nav>
         )}
       </AnimatePresence>
 
-      <div className="reader-container">
-        {manga?.type === 'Novel' ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="novel-reader-content glass-card">
-            <h2 className="novel-ch-title">Chương {chapter.number}: {chapter.title}</h2>
-            <div className="novel-text">
-              {chapter.content?.split('\n').map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
-          </motion.div>
+      {/* NỘI DUNG CHÍNH */}
+      <div className="reader-main-content">
+        {loading ? (
+          <div className="skeleton-container container">
+            <div className="skeleton-line"></div>
+            <div className="skeleton-box"></div>
+            <div className="skeleton-box"></div>
+            <div className="skeleton-box"></div>
+          </div>
+        ) : error ? (
+          <div className="reader-error">
+            <div className="error-icon">⚠️</div>
+            <h2>Không thể tải chương</h2>
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()} className="btn-retry">Thử lại</button>
+          </div>
         ) : (
-          <div className="manga-reader-content">
-            {chapter.images?.map((img, index) => (
-              <div key={index} className="reader-page-img">
-                <img src={img} alt={`Trang ${index + 1}`} loading="lazy" />
+          <div className="content-display">
+            {chapter?.type === 'Novel' ? (
+              <div className="novel-reader container">
+                <h1 className="novel-title">Chương {chapter.number}: {chapter.title}</h1>
+                <div className="novel-body">
+                  {chapter.content?.split('\n').map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
               </div>
-            ))}
+            ) : (
+              <div className="manga-reader">
+                {chapter?.images?.map((img, i) => (
+                  <img key={i} src={img} alt={`Trang ${i+1}`} loading="lazy" className="manga-page-img" />
+                ))}
+              </div>
+            )}
+
+            {/* ĐIỀU HƯỚNG CUỐI TRANG */}
+            <div className="reader-footer-nav container">
+              <div className="nav-btns-large">
+                <button 
+                  className="big-btn prev" 
+                  onClick={() => goToChapter(prevChapter?._id)}
+                  disabled={!prevChapter}
+                >
+                  <ChevronLeft size={24} /> Chương trước
+                </button>
+                <button 
+                  className="big-btn next" 
+                  onClick={() => goToChapter(nextChapter?._id)}
+                  disabled={!nextChapter}
+                >
+                  {nextChapter ? 'Chương kế tiếp' : 'Hết bộ truyện'} <ChevronRight size={24} />
+                </button>
+              </div>
+              
+              <div className="footer-actions">
+                <button className="action-item"><Heart size={24} /> <span>Yêu thích</span></button>
+                <button className="action-item"><MessageSquare size={24} /> <span>Bình luận</span></button>
+                <button className="action-item"><BarChart3 size={24} /> <span>Xếp hạng</span></button>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="reader-nav-bottom container">
-        <div className="ch-navigation">
-          <button 
-            className="big-nav-btn prev glass" 
-            onClick={() => goToChapter(prevChapter?._id)} 
-            disabled={!prevChapter}
-          >Chương trước</button>
-          
-          <button 
-            className="big-nav-btn next" 
-            onClick={() => goToChapter(nextChapter?._id)} 
-            disabled={!nextChapter}
-          >{nextChapter ? 'Chương kế tiếp' : 'Hết chương'}</button>
-        </div>
-        
-        <div className="reader-footer-actions">
-          <button className="action-item"><Heart size={24} /> Theo dõi</button>
-          <button className="action-item"><MessageSquare size={24} /> Bình luận</button>
-          <button className="action-item" onClick={() => navigate('/')}><Home size={24} /> Trang chủ</button>
-        </div>
-      </div>
-
       <style jsx="true">{`
-        .reader-page { background: #0a0a0a; min-height: 100vh; padding-top: 80px; }
-        .reader-loading, .reader-error { 
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          display: flex; 
-          flex-direction: column; 
-          align-items: center; 
-          justify-content: center; 
-          background: #0a0a0a;
-          color: white; 
-          gap: 1.5rem;
-          z-index: 2000;
-        }
-        .reader-loading p {
-          font-size: 1.1rem;
-          font-weight: 600;
-          letter-spacing: 1px;
-          color: #94a3b8;
-        }
-        .reader-nav-top { position: fixed; top: 0; left: 0; right: 0; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 1000; background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-left, .nav-center, .nav-right { display: flex; align-items: center; gap: 1rem; }
-        .back-btn { display: flex; align-items: center; gap: 0.5rem; color: #ccc; font-weight: 600; }
-        .chapter-name { color: var(--primary); font-weight: 700; }
-        .ch-select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 8px; color: white; outline: none; min-width: 180px; }
-        .nav-ch-btn { background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 8px; color: white; }
-        .nav-ch-btn:disabled { opacity: 0.3; }
+        .reader-page { background: #0a0a0a; min-height: 100vh; color: white; }
         
-        .reader-container { width: 100%; max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-        .manga-reader-content { display: flex; flex-direction: column; align-items: center; }
-        .reader-page-img { width: 100%; margin-bottom: 0; }
-        .reader-page-img img { width: 100%; height: auto; display: block; }
-        
-        .novel-reader-content { background: #fdf6e3; color: #5c4b37; padding: 4rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .novel-ch-title { font-size: 2rem; font-weight: 800; margin-bottom: 3rem; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 1.5rem; }
-        .novel-text { font-size: 1.25rem; line-height: 2; font-family: 'Merriweather', serif; }
-        .novel-text p { margin-bottom: 1.5rem; }
+        .reader-nav-top { 
+          position: fixed; top: 0; left: 0; right: 0; height: 70px; 
+          background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(15px);
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 2rem; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
 
-        .reader-nav-bottom { padding: 5rem 0; display: flex; flex-direction: column; align-items: center; gap: 4rem; }
-        .ch-navigation { display: flex; gap: 2rem; width: 100%; max-width: 600px; }
-        .big-nav-btn { flex: 1; padding: 1.25rem; border-radius: 15px; font-weight: 800; font-size: 1.2rem; transition: var(--transition); }
-        .big-nav-btn.prev { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
-        .big-nav-btn.next { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
-        .big-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
-        .reader-footer-actions { display: flex; gap: 4rem; color: #94a3b8; }
-        .action-item { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; font-weight: 600; }
+        .nav-left, .nav-center, .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .back-btn { display: flex; align-items: center; gap: 0.5rem; color: #ccc; font-weight: 700; }
+        .chapter-info-badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+        
+        .ch-select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; outline: none; }
+        .nav-ch-btn { color: #94a3b8; padding: 6px; }
+        .nav-ch-btn:disabled { opacity: 0.2; }
+        .icon-btn { color: #94a3b8; padding: 8px; }
+
+        .reader-main-content { padding-top: 70px; }
+        
+        /* SKELETON LOADING */
+        .skeleton-container { padding: 4rem 1rem; display: flex; flex-direction: column; gap: 2rem; }
+        .skeleton-line { width: 60%; height: 40px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+        .skeleton-box { width: 100%; height: 600px; background: rgba(255,255,255,0.03); border-radius: 12px; }
+
+        .manga-reader { display: flex; flex-direction: column; align-items: center; }
+        .manga-page-img { width: 100%; max-width: 900px; height: auto; display: block; }
+
+        .novel-reader { max-width: 800px; padding: 4rem 1.5rem; background: #fdf6e3; color: #5c4b37; border-radius: 0 0 12px 12px; margin-bottom: 3rem; }
+        .novel-title { font-size: 2.25rem; font-weight: 900; margin-bottom: 3rem; text-align: center; color: #2d2419; }
+        .novel-body { font-size: 1.3rem; line-height: 2; font-family: 'Georgia', serif; }
+        .novel-body p { margin-bottom: 1.5rem; text-align: justify; }
+
+        .reader-footer-nav { padding: 4rem 1rem 8rem; display: flex; flex-direction: column; align-items: center; gap: 4rem; }
+        .nav-btns-large { display: flex; gap: 2rem; width: 100%; max-width: 700px; }
+        .big-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.25rem; border-radius: 16px; font-weight: 800; font-size: 1.1rem; transition: all 0.3s; }
+        .big-btn.prev { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); }
+        .big-btn.next { background: var(--primary); color: white; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); }
+        .big-btn:disabled { opacity: 0.2; pointer-events: none; }
+
+        .footer-actions { display: flex; gap: 4rem; color: #64748b; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9rem; }
         .action-item:hover { color: var(--primary); }
 
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .reader-error { height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; }
+        .error-icon { font-size: 4rem; }
+        .btn-retry { background: var(--primary); color: white; padding: 10px 25px; border-radius: 8px; font-weight: 700; }
 
         @media (max-width: 768px) {
           .reader-nav-top { padding: 0 1rem; }
           .desktop-only { display: none; }
-          .ch-select { min-width: 120px; font-size: 0.8rem; }
-          .novel-reader-content { padding: 2rem 1.5rem; }
-          .ch-navigation { flex-direction: column; gap: 1rem; }
-          .reader-footer-actions { gap: 2rem; }
+          .nav-btns-large { flex-direction: column; gap: 1rem; }
+          .footer-actions { gap: 2rem; }
+          .novel-reader { padding: 2rem 1rem; border-radius: 0; }
         }
       `}</style>
     </div>
