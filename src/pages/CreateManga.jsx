@@ -24,6 +24,7 @@ const CreateManga = () => {
 
   const [myManga, setMyManga] = useState([]);
   const [loadingManga, setLoadingManga] = useState(true);
+  const [serverDebugId, setServerDebugId] = useState(null);
 
   useEffect(() => {
     const fetchMyManga = async () => {
@@ -37,6 +38,10 @@ const CreateManga = () => {
         console.log('--- DEBUG FRONTEND ---');
         console.log('Mã ID Server nhận được:', data.debug?.serverReceivedId);
         
+        if (data.debug?.serverReceivedId) {
+          setServerDebugId(data.debug.serverReceivedId);
+        }
+
         if (res.ok) {
           setMyManga(data.mangas || []);
         }
@@ -182,7 +187,10 @@ const CreateManga = () => {
               </div>
               <div className="section-header-hub">
                 <h2 className="section-title-hub">Tác phẩm của bạn</h2>
-                {user && <span className="debug-id-badge">ID người dùng: {user.id}</span>}
+                <div className="debug-badges">
+                  {user && <span className="debug-id-badge">ID trình duyệt: {user.id}</span>}
+                  {serverDebugId && <span className="debug-id-badge server">ID Server nhận: {serverDebugId}</span>}
+                </div>
               </div>
               
               {loadingManga ? (
@@ -383,7 +391,9 @@ const CreateManga = () => {
 
         .my-works-section { margin-top: 5rem; text-align: left; }
         .section-header-hub { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+        .debug-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .debug-id-badge { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace; }
+        .debug-id-badge.server { background: #ecfdf5; color: #059669; }
         .section-divider { display: flex; align-items: center; gap: 1rem; color: var(--text-muted); font-weight: 800; font-size: 0.75rem; margin-bottom: 2rem; }
         .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
         .section-title-hub { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin: 0; }

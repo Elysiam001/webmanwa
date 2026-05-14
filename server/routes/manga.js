@@ -104,17 +104,19 @@ router.get('/:id', async (req, res) => {
 // @desc    Lấy danh sách truyện của người dùng hiện tại
 router.get('/user', auth, async (req, res) => {
   try {
-    console.log('--- DEBUG GET /USER ---');
-    console.log('User ID từ Token:', req.user.id);
+    console.log('--- DEBUG GET /USER (SUPER SEARCH) ---');
+    // Cắt bỏ mọi dấu cách thừa nếu có
+    const rawId = req.user.id.toString().trim();
+    console.log(`ID nguyên bản: "${rawId}"`);
     
-    // TÌM KIẾM LINH HOẠT: Thử cả dạng Chuỗi và dạng ObjectId
-    const userObjectId = mongoose.Types.ObjectId.isValid(req.user.id) 
-      ? new mongoose.Types.ObjectId(req.user.id) 
+    const userObjectId = mongoose.Types.ObjectId.isValid(rawId) 
+      ? new mongoose.Types.ObjectId(rawId) 
       : null;
 
+    // Tìm kiếm bằng mọi giá: cả chuỗi và ObjectId
     const mangas = await Manga.find({ 
       $or: [
-        { uploader: req.user.id }, 
+        { uploader: rawId }, 
         { uploader: userObjectId }
       ] 
     }).sort({ createdAt: -1 }).lean();
@@ -130,11 +132,10 @@ router.get('/user', auth, async (req, res) => {
       };
     }));
 
-    // Gửi thêm thông tin debug về cho Frontend
     res.json({
       mangas: mangasWithChapters,
       debug: {
-        serverReceivedId: req.user.id,
+        serverReceivedId: rawId,
         count: mangasWithChapters.length
       }
     });
