@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Upload, X, Grid, List, Eye, Save, ChevronLeft, Move } from 'lucide-react';
+import { Upload, X, Grid, List, Eye, Save, ChevronLeft, Move, Loader2 } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
 
 const AddChapter = () => {
@@ -8,189 +8,255 @@ const AddChapter = () => {
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [chapterInfo, setChapterInfo] = useState({ number: '', title: '' });
+  const [loading, setLoading] = useState(false);
+  const [mangaTitle, setMangaTitle] = useState('Đang tải...');
 
-  const handleFileChange = (e) => {
+  useEffect(() => {
+    // Fetch manga info if needed, or just keep it simple for now
+    setMangaTitle('Tác phẩm của bạn');
+  }, [id]);
+
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map((file, index) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      url: URL.createObjectURL(file),
-      name: file.name
+    
+    const newImages = await Promise.all(files.map(async (file) => {
+      const base64 = await convertToBase64(file);
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        url: base64,
+        name: file.name
+      };
     }));
+
     setImages([...images, ...newImages]);
+  };
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   const removeImage = (imgId) => {
     setImages(images.filter(img => img.id !== imgId));
   };
 
+  const handleSave = async () => {
+    if (!chapterInfo.number) return alert('Vui lòng nhập số chương!');
+    if (images.length === 0) return alert('Vui lòng tải lên ít nhất 1 ảnh!');
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/manga/${id}/chapters`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          number: chapterInfo.number,
+          title: chapterInfo.title,
+          images: images.map(img => img.url)
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Lỗi khi đăng chương');
+
+      alert(`Đã đăng thành công chương ${chapterInfo.number}!`);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="add-chapter-page container">
-      <header className="page-header">
-        <button onClick={() => navigate(-1)} className="back-link">
-          <ChevronLeft size={20} /> Quay lại quản lý truyện
-        </button>
-        <h1 className="page-title">Thêm chương mới</h1>
-      </header>
+    <div className="add-chapter-page">
+      <div className="container">
+        <header className="page-header-vibrant">
+          <button onClick={() => navigate('/dashboard')} className="back-btn-dash">
+            <ChevronLeft size={20} /> Quay lại quản lý
+          </button>
+          <div className="header-titles">
+            <h1 className="page-title">Đăng chương mới</h1>
+            <p className="manga-ref">Dành cho: <span className="highlight-text">{mangaTitle}</span></p>
+          </div>
+        </header>
 
-      <div className="chapter-grid">
-        <div className="chapter-form glass">
-          <section className="form-section">
-            <h3>Thông tin chương</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Số chương *</label>
-                <input 
-                  type="number" 
-                  placeholder="Ví dụ: 1" 
-                  value={chapterInfo.number}
-                  onChange={(e) => setChapterInfo({...chapterInfo, number: e.target.value})}
-                />
+        <div className="chapter-content-grid">
+          <div className="main-form-side">
+            <section className="info-section-dash glass-card">
+              <div className="section-title">
+                <Book size={20} />
+                <h3>Thông tin chương</h3>
               </div>
-              <div className="form-group">
-                <label>Tên chương (tùy chọn)</label>
-                <input 
-                  type="text" 
-                  placeholder="Ví dụ: Khởi đầu mới..." 
-                  value={chapterInfo.title}
-                  onChange={(e) => setChapterInfo({...chapterInfo, title: e.target.value})}
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="upload-section">
-            <div className="section-header">
-              <h3>Tải lên trang truyện</h3>
-              <span className="count">{images.length} ảnh đã chọn</span>
-            </div>
-            
-            <label className="dropzone-area glass">
-              <input type="file" multiple accept="image/*" onChange={handleFileChange} hidden />
-              <Upload size={40} className="icon" />
-              <h4>Kéo thả hoặc click để tải ảnh lên</h4>
-              <p>Hỗ trợ tải hàng loạt ảnh (JPG, PNG, WEBP)</p>
-            </label>
-
-            <div className="image-manager">
-              <div className="manager-header">
-                <h4>Sắp xếp trang</h4>
-                <div className="view-toggle">
-                  <button className="active"><Grid size={18} /></button>
-                  <button><List size={18} /></button>
+              <div className="form-row-dash">
+                <div className="input-group-dash">
+                  <label>Chương số *</label>
+                  <input 
+                    type="number" 
+                    placeholder="Ví dụ: 1" 
+                    value={chapterInfo.number}
+                    onChange={(e) => setChapterInfo({...chapterInfo, number: e.target.value})}
+                  />
+                </div>
+                <div className="input-group-dash">
+                  <label>Tên chương (không bắt buộc)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ví dụ: Khởi đầu mới..." 
+                    value={chapterInfo.title}
+                    onChange={(e) => setChapterInfo({...chapterInfo, title: e.target.value})}
+                  />
                 </div>
               </div>
+            </section>
 
-              <Reorder.Group axis="y" values={images} onReorder={setImages} className="image-list">
-                {images.map((img, index) => (
-                  <Reorder.Item key={img.id} value={img} className="image-item glass">
-                    <div className="item-left">
-                      <Move size={18} className="drag-handle" />
-                      <span className="page-num">Trang {index + 1}</span>
-                      <img src={img.url} alt="" className="item-thumb" />
-                      <span className="file-name">{img.name}</span>
-                    </div>
-                    <button className="remove-btn" onClick={() => removeImage(img.id)}>
-                      <X size={18} />
-                    </button>
-                  </Reorder.Item>
-                ))}
-              </Reorder.Group>
+            <section className="upload-section-dash glass-card">
+              <div className="section-header-dash">
+                <div className="section-title">
+                  <Upload size={20} />
+                  <h3>Nội dung chương</h3>
+                </div>
+                <span className="image-count">{images.length} trang đã tải</span>
+              </div>
+              
+              <label className="dropzone-vibrant">
+                <input type="file" multiple accept="image/*" onChange={handleFileChange} hidden />
+                <div className="dropzone-content">
+                  <div className="icon-circle">
+                    <Plus size={32} />
+                  </div>
+                  <h4>Tải lên các trang truyện</h4>
+                  <p>Hỗ trợ JPG, PNG, WEBP. Bạn có thể chọn nhiều ảnh cùng lúc.</p>
+                </div>
+              </label>
+
+              {images.length > 0 && (
+                <div className="image-reorder-list">
+                  <div className="reorder-header">
+                    <span>Kéo thả để sắp xếp thứ tự các trang</span>
+                  </div>
+                  <Reorder.Group axis="y" values={images} onReorder={setImages} className="images-container">
+                    {images.map((img, index) => (
+                      <Reorder.Item key={img.id} value={img} className="reorder-item">
+                        <div className="item-main">
+                          <Move size={18} className="drag-icon" />
+                          <span className="page-index">Trang {index + 1}</span>
+                          <img src={img.url} alt="" className="thumb-preview" />
+                          <span className="file-name-text">{img.name}</span>
+                        </div>
+                        <button className="remove-img-btn" onClick={() => removeImage(img.id)}>
+                          <X size={18} />
+                        </button>
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                </div>
+              )}
+            </section>
+
+            <div className="sticky-actions">
+              <div className="actions-inner glass-card">
+                <p className="actions-info">Đảm bảo các trang đã đúng thứ tự trước khi đăng.</p>
+                <div className="action-btns">
+                  <button className="btn-preview-dash" disabled={images.length === 0}>
+                    <Eye size={20} /> Xem trước
+                  </button>
+                  <button 
+                    className="btn-save-dash" 
+                    onClick={handleSave}
+                    disabled={loading || images.length === 0}
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                    {loading ? 'Đang đăng...' : 'Đăng chương ngay'}
+                  </button>
+                </div>
+              </div>
             </div>
-          </section>
-
-          <div className="form-actions">
-            <button className="preview-btn glass"><Eye size={20} /> Preview</button>
-            <button className="save-btn"><Save size={20} /> Đăng chương</button>
           </div>
+
+          <aside className="sidebar-tips">
+            <div className="tip-card glass-card">
+              <h4>Mẹo đăng truyện</h4>
+              <ul className="tip-list">
+                <li><strong>Thứ tự:</strong> Các trang sẽ hiển thị từ trên xuống dưới theo danh sách bên cạnh.</li>
+                <li><strong>Dung lượng:</strong> Mỗi ảnh nên dưới 2MB để người đọc load nhanh hơn.</li>
+                <li><strong>Số chương:</strong> Nếu bạn đăng chương lẻ (như 1.5), hãy nhập 1.5.</li>
+              </ul>
+            </div>
+          </aside>
         </div>
-
-        <aside className="chapter-sidebar">
-          <div className="info-card glass">
-            <h4>Mẹo nhỏ</h4>
-            <ul>
-              <li>Bạn có thể kéo thả để thay đổi thứ tự các trang.</li>
-              <li>Nên đặt tên file theo số thứ tự (01, 02...) để tự động sắp xếp.</li>
-              <li>Dung lượng mỗi ảnh không nên quá 2MB để load nhanh.</li>
-            </ul>
-          </div>
-        </aside>
       </div>
 
       <style jsx="true">{`
-        .add-chapter-page { padding: 120px 2rem 5rem; }
-        .page-header { margin-bottom: 2.5rem; }
-        .back-link { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); margin-bottom: 1rem; font-weight: 500; }
-        .page-title { font-size: 2.5rem; font-weight: 800; }
+        .add-chapter-page { padding: 120px 0 100px; background: #f8fafc; min-height: 100vh; }
+        .page-header-vibrant { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; }
+        .back-btn-dash { background: white; color: var(--text-secondary); padding: 10px 15px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+        .page-title { font-size: 2.25rem; font-weight: 800; color: var(--text-primary); }
+        .manga-ref { color: var(--text-secondary); font-size: 1.1rem; }
+        .highlight-text { color: var(--primary); font-weight: 700; }
 
-        .chapter-grid { display: grid; grid-template-columns: 1fr 350px; gap: 2.5rem; align-items: start; }
-        .chapter-form { padding: 3rem; border-radius: var(--radius-lg); }
+        .chapter-content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; }
+        .section-title { display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); margin-bottom: 1.5rem; }
+        .section-title h3 { font-size: 1.25rem; font-weight: 800; }
+        .section-title svg { color: var(--primary); }
 
-        .form-section { margin-bottom: 3rem; }
-        .form-section h3 { margin-bottom: 1.5rem; font-size: 1.25rem; color: var(--primary); }
+        .info-section-dash, .upload-section-dash { padding: 2rem; margin-bottom: 2rem; }
+        .form-row-dash { display: grid; grid-template-columns: 150px 1fr; gap: 1.5rem; }
+        .input-group-dash { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group-dash label { font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); }
+        .input-group-dash input { padding: 0.85rem; border: 1px solid var(--border); border-radius: 10px; outline: none; transition: var(--transition); background: #f8fafc; }
+        .input-group-dash input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-light); }
 
-        .form-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group label { font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); }
+        .section-header-dash { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .image-count { background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: var(--radius-full); font-weight: 700; font-size: 0.85rem; }
 
-        input { background: var(--bg-surface-elevated); border: 1px solid var(--border); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); color: white; outline: none; }
-        input:focus { border-color: var(--primary); }
+        .dropzone-vibrant { display: block; background: white; border: 2px dashed var(--border); border-radius: 15px; padding: 3rem; cursor: pointer; transition: var(--transition); }
+        .dropzone-vibrant:hover { border-color: var(--primary); background: var(--primary-light); }
+        .dropzone-content { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+        .icon-circle { width: 64px; height: 64px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2); }
+        .dropzone-content h4 { font-weight: 800; font-size: 1.1rem; }
+        .dropzone-content p { color: var(--text-muted); font-size: 0.9rem; }
 
-        .form-row { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; }
+        .image-reorder-list { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; }
+        .reorder-header { margin-bottom: 1.5rem; font-weight: 700; color: var(--text-secondary); font-size: 0.9rem; }
+        .images-container { display: flex; flex-direction: column; gap: 0.75rem; }
+        .reorder-item { background: white; border: 1px solid var(--border); padding: 1rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; cursor: move; }
+        .item-main { display: flex; align-items: center; gap: 1.5rem; }
+        .drag-icon { color: var(--text-muted); }
+        .page-index { font-weight: 800; color: var(--primary); min-width: 60px; }
+        .thumb-preview { width: 50px; height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+        .file-name-text { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
+        .remove-img-btn { color: var(--text-muted); padding: 8px; border-radius: 50%; }
+        .remove-img-btn:hover { background: #fff1f2; color: #f43f5e; }
 
-        .upload-section { margin-bottom: 3rem; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .count { color: var(--text-muted); font-size: 0.9rem; }
+        .sticky-actions { position: sticky; bottom: 2rem; z-index: 100; margin-top: 3rem; }
+        .actions-inner { padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .actions-info { font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+        .action-btns { display: flex; gap: 1rem; }
+        .btn-preview-dash { padding: 0.85rem 1.5rem; border-radius: 12px; font-weight: 700; color: var(--text-primary); border: 2px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+        .btn-save-dash { background: var(--primary); color: white; padding: 0.85rem 2rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); }
+        .btn-save-dash:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .dropzone-area {
-          border: 2px dashed var(--border);
-          border-radius: var(--radius-lg);
-          padding: 3rem;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          cursor: pointer;
-          transition: var(--transition);
-        }
+        .tip-card { padding: 1.5rem; }
+        .tip-card h4 { font-weight: 800; margin-bottom: 1rem; color: var(--text-primary); }
+        .tip-list { display: flex; flex-direction: column; gap: 1rem; }
+        .tip-list li { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
 
-        .dropzone-area:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.05); }
-        .dropzone-area .icon { color: var(--text-muted); margin-bottom: 1rem; }
-        .dropzone-area h4 { margin-bottom: 0.5rem; }
-        .dropzone-area p { font-size: 0.85rem; color: var(--text-muted); }
-
-        .image-manager { margin-top: 3rem; }
-        .manager-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .view-toggle { display: flex; background: var(--bg-surface-elevated); padding: 0.25rem; border-radius: var(--radius-sm); }
-        .view-toggle button { padding: 0.4rem; border-radius: var(--radius-sm); color: var(--text-muted); }
-        .view-toggle button.active { background: var(--bg-surface); color: var(--primary); }
-
-        .image-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .image-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.75rem 1.25rem;
-          border-radius: var(--radius-md);
-        }
-
-        .item-left { display: flex; align-items: center; gap: 1.25rem; }
-        .drag-handle { color: var(--text-muted); cursor: grab; }
-        .page-num { font-weight: 700; color: var(--primary); font-size: 0.9rem; min-width: 60px; }
-        .item-thumb { width: 50px; height: 70px; object-fit: cover; border-radius: 4px; }
-        .file-name { font-size: 0.9rem; color: var(--text-secondary); }
-
-        .remove-btn { color: var(--text-muted); }
-        .remove-btn:hover { color: #ef4444; }
-
-        .form-actions { display: flex; justify-content: flex-end; gap: 1.5rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-        .preview-btn { padding: 0.85rem 2rem; border-radius: var(--radius-md); font-weight: 600; color: white; display: flex; align-items: center; gap: 0.75rem; }
-        .save-btn { background: var(--primary); color: white; padding: 0.85rem 2rem; border-radius: var(--radius-md); font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
-
-        .info-card { padding: 1.5rem; border-radius: var(--radius-lg); }
-        .info-card h4 { margin-bottom: 1rem; }
-        .info-card li { font-size: 0.85rem; color: var(--text-secondary); list-style: disc; margin-left: 1rem; margin-bottom: 0.5rem; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         @media (max-width: 1024px) {
-          .chapter-grid { grid-template-columns: 1fr; }
+          .chapter-content-grid { grid-template-columns: 1fr; }
+          .sidebar-tips { display: none; }
+          .form-row-dash { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>

@@ -1,13 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Flame, Star, TrendingUp, Clock, ChevronRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Home = () => {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [latestUpdates, setLatestUpdates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const bannerManga = []; // Sẽ lấy từ Database sau
-  const latestUpdates = []; // Sẽ lấy từ Database sau
+  useEffect(() => {
+    const fetchManga = async () => {
+      try {
+        const res = await fetch('/api/manga');
+        const data = await res.json();
+        if (res.ok) setLatestUpdates(data);
+      } catch (err) {
+        console.error('Lỗi tải truyện:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchManga();
+  }, []);
 
   return (
     <div className="home-page">
@@ -73,25 +87,29 @@ const Home = () => {
             {latestUpdates.length > 0 ? (
               latestUpdates.map((manga, idx) => (
                 <motion.div 
-                  key={manga.id}
+                  key={manga._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                   whileHover={{ y: -8 }}
                 >
-                  <Link to={`/manga/${manga.id}`} className="manga-card-vibrant">
+                  <Link to={`/manga/${manga._id}`} className="manga-card-vibrant">
                     <div className="card-thumb-vibrant">
-                      <img src={manga.thumbnail} alt={manga.title} />
+                      <img src={manga.cover} alt={manga.title} />
                       <div className="card-badge">{manga.status || 'Hot'}</div>
                       <div className="card-rating">
-                        <Star size={12} fill="currentColor" /> {manga.rating}
+                        <Star size={12} fill="currentColor" /> {manga.rating || 0}
                       </div>
                     </div>
                     <div className="card-content-vibrant">
                       <h3 className="manga-title-vibrant">{manga.title}</h3>
                       <div className="manga-info-vibrant">
-                        <span className="chapter-label">{manga.chapter}</span>
-                        <span className="views-label"><Flame size={12} /> {manga.views}</span>
+                        <span className="chapter-label">
+                          {manga.chapters?.length > 0 
+                            ? `Chương ${manga.chapters[manga.chapters.length - 1].number}` 
+                            : 'Chưa có chương'}
+                        </span>
+                        <span className="views-label"><Flame size={12} /> {manga.views || 0}</span>
                       </div>
                     </div>
                   </Link>

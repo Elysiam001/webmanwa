@@ -17,6 +17,7 @@ const CreateManga = () => {
     coverImage: ''
   });
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleTypeSelect = (type) => {
     setStoryType(type);
@@ -34,10 +35,39 @@ const CreateManga = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Đã tạo thành công ${storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}: ${formData.title}`);
-    navigate('/');
+    setLoading(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/manga', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          otherTitle: formData.otherTitle || '',
+          description: formData.description,
+          author: formData.author || 'Đang cập nhật',
+          cover: formData.coverImage,
+          genres: formData.genres,
+          type: storyType === 'manga' ? 'Manhwa' : 'Novel'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Lỗi khi tạo truyện');
+
+      alert(`Đã tạo thành công: ${data.title}`);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
