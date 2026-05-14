@@ -221,7 +221,8 @@ const Navbar = () => {
         .login-btn-new { background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; }
         .user-section { display: flex; align-items: center; gap: 0.75rem; position: relative; }
         .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; }
-        .user-dropdown { position: absolute; top: calc(100% + 15px); right: 0; width: 240px; }
+        .glass-card { background: white; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: var(--radius-lg); overflow: hidden; }
+        .user-dropdown { position: absolute; top: calc(100% + 15px); right: 0; width: 240px; z-index: 1001; }
         .user-profile-header { padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
         .dropdown-avatar { width: 40px; height: 40px; border-radius: 50%; }
         .username-display { font-weight: 700; color: var(--text-primary); }
