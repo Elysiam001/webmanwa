@@ -30,19 +30,28 @@ const AddChapter = () => {
           let width = img.width;
           let height = img.height;
 
-          // Giới hạn chiều rộng tối đa 1200px để tối ưu dung lượng
+          // 1. Giới hạn chiều rộng tối đa 1200px
           const MAX_WIDTH = 1200;
           if (width > MAX_WIDTH) {
             height = (MAX_WIDTH / width) * height;
             width = MAX_WIDTH;
           }
 
+          // 2. Giới hạn chiều cao tối đa (Chrome limit ~16,384px)
+          const MAX_HEIGHT = 16000;
+          if (height > MAX_HEIGHT) {
+            width = (MAX_HEIGHT / height) * width;
+            height = MAX_HEIGHT;
+          }
+
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          
+          // Vẽ lại ảnh lên canvas với kích thước đã tối ưu
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Nén chất lượng xuống 0.7 (70%) để cân bằng giữa nét và nhẹ
+          // Nén chất lượng xuống 0.7 (70%)
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
           resolve(compressedBase64);
         };
