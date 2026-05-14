@@ -107,8 +107,17 @@ router.get('/user', auth, async (req, res) => {
     console.log('--- DEBUG GET /USER ---');
     console.log('User ID từ Token:', req.user.id);
     
-    const userObjectId = new mongoose.Types.ObjectId(req.user.id);
-    const mangas = await Manga.find({ uploader: userObjectId }).sort({ createdAt: -1 }).lean();
+    // TÌM KIẾM LINH HOẠT: Thử cả dạng Chuỗi và dạng ObjectId
+    const userObjectId = mongoose.Types.ObjectId.isValid(req.user.id) 
+      ? new mongoose.Types.ObjectId(req.user.id) 
+      : null;
+
+    const mangas = await Manga.find({ 
+      $or: [
+        { uploader: req.user.id }, 
+        { uploader: userObjectId }
+      ] 
+    }).sort({ createdAt: -1 }).lean();
     
     console.log(`📊 Kết quả: Tìm thấy ${mangas.length} bộ truyện.`);
     
