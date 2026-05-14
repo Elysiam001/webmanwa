@@ -11,12 +11,14 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('manga');
   const [myManga, setMyManga] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMyManga();
-  }, []);
+    if (!authLoading) {
+      fetchMyManga();
+    }
+  }, [authLoading, token]);
 
   const fetchMyManga = async () => {
     try {

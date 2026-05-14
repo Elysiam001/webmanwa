@@ -51,6 +51,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   GET api/manga/:id
+// @desc    Lấy chi tiết một bộ truyện và danh sách chương
+router.get('/:id', async (req, res) => {
+  try {
+    const manga = await Manga.findById(req.params.id).lean();
+    if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
+
+    const chapters = await Chapter.find({ mangaId: req.params.id }).sort({ number: -1 });
+    res.json({ ...manga, chapters });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') return res.status(404).json({ message: 'Không tìm thấy truyện' });
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   GET api/manga/user
 // @desc    Lấy danh sách truyện của người dùng hiện tại
 router.get('/user', auth, async (req, res) => {
