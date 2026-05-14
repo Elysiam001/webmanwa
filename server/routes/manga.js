@@ -1,12 +1,12 @@
 import express from 'express';
 import Manga from '../models/Manga.js';
+import Chapter from '../models/Chapter.js';
 import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   POST api/manga
 // @desc    Tạo bộ truyện mới
-// @access  Private
 router.post('/', auth, async (req, res) => {
   try {
     const { title, otherTitle, description, author, cover, genres, type } = req.body;
@@ -32,11 +32,19 @@ router.post('/', auth, async (req, res) => {
 
 // @route   GET api/manga
 // @desc    Lấy tất cả truyện (cho trang chủ)
-// @access  Public
 router.get('/', async (req, res) => {
   try {
-    const mangas = await Manga.find().sort({ createdAt: -1 }).limit(20);
-    res.json(mangas);
+    // Lấy truyện kèm theo thông tin chương mới nhất
+    const mangas = await Manga.find().sort({ createdAt: -1 }).limit(20).lean();
+    
+    // Bổ sung số lượng chương cho mỗi truyện
+    const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
+      const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
+      const lastChapter = await Chapter.findOne({ mangaId: manga._id }).sort({ number: -1 });
+      return { ...manga, chapterCount, lastChapter };
+    }));
+
+    res.json(mangasWithChapters);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -45,11 +53,16 @@ router.get('/', async (req, res) => {
 
 // @route   GET api/manga/user
 // @desc    Lấy danh sách truyện của người dùng hiện tại
-// @access  Private
 router.get('/user', auth, async (req, res) => {
   try {
-    const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 });
-    res.json(mangas);
+    const mangas = await Manga.find({ uploader: req.user.id }).sort({ createdAt: -1 }).lean();
+    
+    const mangasWithChapters = await Promise.all(mangas.map(async (manga) => {
+      const chapterCount = await Chapter.countDocuments({ mangaId: manga._id });
+      return { ...manga, chapterCount };
+    }));
+
+    res.json(mangasWithChapters);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -58,32 +71,31 @@ router.get('/user', auth, async (req, res) => {
 
 // @route   POST api/manga/:id/chapters
 // @desc    Thêm chương mới vào truyện
-// @access  Private
 router.post('/:id/chapters', auth, async (req, res) => {
   try {
     const manga = await Manga.findById(req.params.id);
-
     if (!manga) return res.status(404).json({ message: 'Không tìm thấy truyện' });
 
-    // Kiểm tra quyền (chỉ người đăng mới được thêm chương)
     if (manga.uploader.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Quyền truy cập bị từ chối' });
     }
 
     const { number, title, images } = req.body;
 
-    const newChapter = {
+    const newChapter = new Chapter({
+      mangaId: req.params.id,
       number,
       title,
       images
-    };
+    });
 
-    manga.chapters.push(newChapter);
-    await manga.save();
-
-    res.json(manga);
+    await newChapter.save();
+    res.json(newChapter);
   } catch (err) {
     console.error(err.message);
+    if (err.code === 11000) {
+      return res.status(400).json({ message: `Chương ${req.body.number} đã tồn tại!` });
+    }
     res.status(500).send('Server Error');
   }
 });

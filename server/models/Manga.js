@@ -14,12 +14,6 @@ const MangaSchema = new mongoose.Schema({
   followers: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   uploader: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  chapters: [{
-    number: Number,
-    title: String,
-    images: [String],
-    createdAt: { type: Date, default: Date.now }
-  }],
   createdAt: { type: Date, default: Date.now }
 });
 

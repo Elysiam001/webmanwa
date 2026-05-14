@@ -140,7 +140,7 @@ const Dashboard = () => {
                         </div>
                       </td>
                       <td><span className="type-badge-dash">{m.type}</span></td>
-                      <td>{m.chapters?.length || 0}</td>
+                      <td>{m.chapterCount || 0}</td>
                       <td><span className="status-tag-dash">{m.status}</span></td>
                       <td>
                         <div className="table-actions">

@@ -105,8 +105,8 @@ const Home = () => {
                       <h3 className="manga-title-vibrant">{manga.title}</h3>
                       <div className="manga-info-vibrant">
                         <span className="chapter-label">
-                          {manga.chapters?.length > 0 
-                            ? `Chương ${manga.chapters[manga.chapters.length - 1].number}` 
+                          {manga.lastChapter 
+                            ? `Chương ${manga.lastChapter.number}` 
                             : 'Chưa có chương'}
                         </span>
                         <span className="views-label"><Flame size={12} /> {manga.views || 0}</span>
