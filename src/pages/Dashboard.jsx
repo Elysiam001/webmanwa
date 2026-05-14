@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Book, PlusCircle, Users, BarChart3, 
-  Settings, LogOut, ChevronRight, Edit, Trash2, Eye, Plus, X, Save, ImageIcon
+  Settings, LogOut, ChevronRight, Edit, Trash2, Eye, Plus, X, Save, ImageIcon, List
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +12,8 @@ const Dashboard = () => {
   const [myManga, setMyManga] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingManga, setEditingManga] = useState(null);
+  const [viewingChapters, setViewingChapters] = useState(null);
+  const [chaptersList, setChaptersList] = useState([]);
   const [updateLoading, setUpdateLoading] = useState(false);
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -45,9 +47,6 @@ const Dashboard = () => {
         if (res.ok) {
           alert('Đã xóa truyện thành công!');
           setMyManga(myManga.filter(m => m._id !== id));
-        } else {
-          const data = await res.json();
-          alert(data.message || 'Lỗi khi xóa truyện');
         }
       } catch (err) {
         alert('Lỗi kết nối Server');
@@ -67,14 +66,10 @@ const Dashboard = () => {
         },
         body: JSON.stringify(editingManga)
       });
-      const data = await res.json();
       if (res.ok) {
         alert('Cập nhật thành công!');
-        setMyManga(myManga.map(m => m._id === data._id ? data : m));
         setEditingManga(null);
-        fetchMyManga(); // Refresh to be sure
-      } else {
-        alert(data.message || 'Lỗi khi cập nhật');
+        fetchMyManga();
       }
     } catch (err) {
       alert('Lỗi kết nối Server');
@@ -83,9 +78,38 @@ const Dashboard = () => {
     }
   };
 
+  const handleViewChapters = async (manga) => {
+    setViewingChapters(manga);
+    try {
+      const res = await fetch(`/api/manga/${manga._id}`);
+      const data = await res.json();
+      if (res.ok) setChaptersList(data.chapters || []);
+    } catch (err) {
+      alert('Lỗi khi tải danh sách chương');
+    }
+  };
+
+  const handleDeleteChapter = async (chapterId, number) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa chương ${number} không?`)) {
+      try {
+        const res = await fetch(`/api/manga/chapters/${chapterId}`, {
+          method: 'DELETE',
+          headers: { 'x-auth-token': token }
+        });
+        if (res.ok) {
+          alert('Đã xóa chương thành công!');
+          setChaptersList(chaptersList.filter(ch => ch._id !== chapterId));
+          fetchMyManga(); // Update chapter count in main list
+        }
+      } catch (err) {
+        alert('Lỗi kết nối Server');
+      }
+    }
+  };
+
   const stats = [
     { label: "Số truyện", value: myManga.length, icon: <Book size={20} />, color: "#22c55e" },
-    { label: "Tổng view", value: "0", icon: <Eye size={20} />, color: "#8b5cf6" },
+    { label: "Tổng view", value: myManga.reduce((acc, m) => acc + (m.views || 0), 0), icon: <Eye size={20} />, color: "#8b5cf6" },
     { label: "Theo dõi", value: "0", icon: <Users size={20} />, color: "#06b6d4" },
     { label: "Rating TB", value: "0", icon: <BarChart3 size={20} />, color: "#eab308" },
   ];
@@ -189,8 +213,9 @@ const Dashboard = () => {
                               <Plus size={18} /> Thêm vào
                             </Link>
                           )}
+                          <button onClick={() => handleViewChapters(m)} className="action-btn-icon" title="Quản lý chương"><List size={18} /></button>
                           <button onClick={() => setEditingManga(m)} className="action-btn-icon" title="Chỉnh sửa"><Edit size={18} /></button>
-                          <button onClick={() => handleDelete(m._id, m.title)} className="action-btn-icon delete" title="Xóa"><Trash2 size={18} /></button>
+                          <button onClick={() => handleDelete(m._id, m.title)} className="action-btn-icon delete" title="Xóa toàn bộ"><Trash2 size={18} /></button>
                         </div>
                       </td>
                     </tr>
@@ -208,7 +233,42 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* MODAL CHỈNH SỬA TRUYỆN */}
+      {/* MODAL QUẢN LÝ CHƯƠNG */}
+      <AnimatePresence>
+        {viewingChapters && (
+          <div className="modal-overlay">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="modal-card glass-card">
+              <div className="modal-header">
+                <h3>Danh sách chương: {viewingChapters.title}</h3>
+                <button onClick={() => setViewingChapters(null)} className="close-modal"><X size={24} /></button>
+              </div>
+              <div className="modal-body-scroll">
+                {chaptersList.length > 0 ? (
+                  <div className="chapter-management-list">
+                    {chaptersList.map(ch => (
+                      <div key={ch._id} className="ch-manage-item">
+                        <div className="ch-info-side">
+                          <span className="ch-number">Chương {ch.number}</span>
+                          <span className="ch-name">{ch.title || 'Không có tiêu đề'}</span>
+                        </div>
+                        <div className="ch-actions-side">
+                          <button onClick={() => handleDeleteChapter(ch._id, ch.number)} className="btn-delete-ch">
+                            <Trash2 size={16} /> Xóa chương
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-modal-state">Chưa có chương nào được đăng.</div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL CHỈNH SỬA TRUYỆN (GIỮ NGUYÊN NHƯ CŨ) */}
       <AnimatePresence>
         {editingManga && (
           <div className="modal-overlay">
@@ -236,29 +296,16 @@ const Dashboard = () => {
                     <div className="modal-info-side">
                       <div className="input-group-dash">
                         <label>Tên truyện</label>
-                        <input 
-                          type="text" 
-                          value={editingManga.title} 
-                          onChange={(e) => setEditingManga({...editingManga, title: e.target.value})}
-                          required
-                        />
+                        <input type="text" value={editingManga.title} onChange={(e) => setEditingManga({...editingManga, title: e.target.value})} required />
                       </div>
                       <div className="input-group-dash">
                         <label>Tên khác</label>
-                        <input 
-                          type="text" 
-                          value={editingManga.otherTitle} 
-                          onChange={(e) => setEditingManga({...editingManga, otherTitle: e.target.value})}
-                        />
+                        <input type="text" value={editingManga.otherTitle} onChange={(e) => setEditingManga({...editingManga, otherTitle: e.target.value})} />
                       </div>
                       <div className="form-row-dash">
                         <div className="input-group-dash">
                           <label>Trạng thái</label>
-                          <select 
-                            value={editingManga.status} 
-                            onChange={(e) => setEditingManga({...editingManga, status: e.target.value})}
-                            className="select-dash"
-                          >
+                          <select value={editingManga.status} onChange={(e) => setEditingManga({...editingManga, status: e.target.value})} className="select-dash">
                             <option value="Đang tiến hành">Đang tiến hành</option>
                             <option value="Hoàn thành">Hoàn thành</option>
                             <option value="Tạm ngưng">Tạm ngưng</option>
@@ -266,11 +313,7 @@ const Dashboard = () => {
                         </div>
                         <div className="input-group-dash">
                           <label>Loại</label>
-                          <select 
-                            value={editingManga.type} 
-                            onChange={(e) => setEditingManga({...editingManga, type: e.target.value})}
-                            className="select-dash"
-                          >
+                          <select value={editingManga.type} onChange={(e) => setEditingManga({...editingManga, type: e.target.value})} className="select-dash">
                             <option value="Manhwa">Manhwa</option>
                             <option value="Manga">Manga</option>
                             <option value="Manhua">Manhua</option>
@@ -280,12 +323,7 @@ const Dashboard = () => {
                       </div>
                       <div className="input-group-dash">
                         <label>Mô tả nội dung</label>
-                        <textarea 
-                          rows="4"
-                          value={editingManga.description} 
-                          onChange={(e) => setEditingManga({...editingManga, description: e.target.value})}
-                          className="textarea-dash"
-                        ></textarea>
+                        <textarea rows="4" value={editingManga.description} onChange={(e) => setEditingManga({...editingManga, description: e.target.value})} className="textarea-dash"></textarea>
                       </div>
                     </div>
                   </div>
@@ -335,19 +373,14 @@ const Dashboard = () => {
         .action-btn-icon { color: var(--text-muted); padding: 0.5rem; border-radius: 8px; }
         .action-btn-icon:hover { background: #f1f5f9; color: var(--text-primary); }
         .action-btn-icon.delete:hover { color: #f43f5e; background: #fff1f2; }
-        .loading-state { 
-          padding: 5rem; 
-          text-align: center; 
-          font-weight: 700; 
-          color: var(--primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-        }
-        .empty-manga { padding: 5rem; text-align: center; }
+        
+        .chapter-management-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .ch-manage-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .ch-number { font-weight: 800; color: var(--primary); margin-right: 1rem; }
+        .ch-name { font-weight: 600; color: var(--text-secondary); }
+        .btn-delete-ch { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #fff1f2; color: #f43f5e; border-radius: 8px; font-size: 0.8rem; font-weight: 700; }
+        .btn-delete-ch:hover { background: #fee2e2; }
 
-        /* MODAL STYLES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 2rem; }
         .modal-card { background: white; width: 100%; max-width: 800px; border-radius: var(--radius-xl); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
         .modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -369,7 +402,6 @@ const Dashboard = () => {
           .dashboard-content { margin-left: 80px; }
           .stats-grid { grid-template-columns: repeat(2, 1fr); }
           .form-grid-modal { grid-template-columns: 1fr; }
-          .modal-cover-side { max-width: 150px; }
         }
       `}</style>
     </div>

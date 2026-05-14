@@ -114,6 +114,26 @@ router.get('/chapters/:chapterId', async (req, res) => {
   }
 });
 
+// @route   DELETE api/manga/chapters/:chapterId
+// @desc    Xóa một chương cụ thể
+router.delete('/chapters/:chapterId', auth, async (req, res) => {
+  try {
+    const chapter = await Chapter.findById(req.params.chapterId);
+    if (!chapter) return res.status(404).json({ message: 'Không tìm thấy chương' });
+
+    const manga = await Manga.findById(chapter.mangaId);
+    if (manga.uploader.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Quyền truy cập bị từ chối' });
+    }
+
+    await Chapter.findByIdAndDelete(req.params.chapterId);
+    res.json({ message: 'Đã xóa chương thành công' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   PUT api/manga/:id
 // @desc    Cập nhật thông tin truyện
 router.put('/:id', auth, async (req, res) => {
