@@ -176,7 +176,7 @@ const CreateManga = () => {
               </div>
               <div className="section-header-hub">
                 <h2 className="section-title-hub">Tác phẩm của bạn</h2>
-                {token && <span className="debug-id-badge">ID: {token.substring(token.length - 8)}</span>}
+                {user && <span className="debug-id-badge">User ID: {user.id}</span>}
               </div>
               
               {loadingManga ? (
