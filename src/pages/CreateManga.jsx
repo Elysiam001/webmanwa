@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BookText, Image as ImageIcon, ArrowRight, ArrowLeft, 
-  CheckCircle, Plus, Info, Sparkles 
+  CheckCircle, Plus, Info, Sparkles, Loader2 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -230,8 +230,9 @@ const CreateManga = () => {
               </div>
 
               <div className="form-footer-hub">
-                <button type="submit" className="btn-create-vibrant">
-                  <Plus size={20} /> Tạo {storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}
+                <button type="submit" className="btn-create-vibrant" disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
+                  {loading ? 'Đang tạo...' : `Tạo ${storyType === 'manga' ? 'Truyện tranh' : 'Truyện chữ'}`}
                 </button>
               </div>
             </form>

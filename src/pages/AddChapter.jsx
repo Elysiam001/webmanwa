@@ -175,7 +175,7 @@ const AddChapter = () => {
                     disabled={loading || images.length === 0}
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                    {loading ? 'Đang đăng...' : 'Đăng chương ngay'}
+                    <span>{loading ? 'Đang đăng...' : 'Đăng chương ngay'}</span>
                   </button>
                 </div>
               </div>

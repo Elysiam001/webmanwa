@@ -17,7 +17,7 @@ router.post('/', auth, async (req, res) => {
       description,
       author,
       cover,
-      genres: genres.split(',').map(g => g.trim()),
+      genres: (genres || '').split(',').map(g => g.trim()).filter(g => g !== ''),
       type,
       uploader: req.user.id
     });
