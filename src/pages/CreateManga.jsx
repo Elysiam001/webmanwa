@@ -30,14 +30,32 @@ const CreateManga = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        return alert('Ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.');
-      }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, coverImage: reader.result });
-      };
       reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Ảnh bìa chỉ cần rộng tối đa 600px là đủ nét
+          const MAX_WIDTH = 600;
+          if (width > MAX_WIDTH) {
+            height = (MAX_WIDTH / width) * height;
+            width = MAX_WIDTH;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+          setFormData({ ...formData, coverImage: compressedBase64 });
+        };
+      };
     }
   };
 

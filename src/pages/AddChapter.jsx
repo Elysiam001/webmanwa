@@ -18,28 +18,57 @@ const AddChapter = () => {
     setMangaTitle('Tác phẩm của bạn');
   }, [id]);
 
-  const handleFileChange = async (e) => {
-    const files = Array.from(e.target.files);
-    
-    const newImages = await Promise.all(files.map(async (file) => {
-      const base64 = await convertToBase64(file);
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        url: base64,
-        name: file.name
-      };
-    }));
-
-    setImages([...images, ...newImages]);
-  };
-
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Giới hạn chiều rộng tối đa 1200px để tối ưu dung lượng
+          const MAX_WIDTH = 1200;
+          if (width > MAX_WIDTH) {
+            height = (MAX_WIDTH / width) * height;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Nén chất lượng xuống 0.7 (70%) để cân bằng giữa nét và nhẹ
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+      };
     });
+  };
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    setLoading(true); // Hiển thị loading trong lúc nén ảnh
+    
+    try {
+      const newImages = await Promise.all(files.map(async (file) => {
+        const compressedBase64 = await compressImage(file);
+        return {
+          id: Math.random().toString(36).substr(2, 9),
+          url: compressedBase64,
+          name: file.name
+        };
+      }));
+      setImages([...images, ...newImages]);
+    } catch (err) {
+      alert('Lỗi khi xử lý ảnh');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeImage = (imgId) => {
